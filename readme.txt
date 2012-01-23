@@ -2,7 +2,7 @@
 Contributors: andy
 Tags: cache, memcached, speed, performance, digg
 Requires at least: 2.0
-Tested up to: 2.6
+Tested up to: 3.3.1
 Stable tag: 1.0
 
 Batcache uses Memcached to store and serve rendered pages.
@@ -26,23 +26,27 @@ Possible future features:
 
 1. Get the Memcached backend working. See below.
 
-1. Upload `advanced-cache.php` to the `/wp-content/` directory
+2. Upload `advanced-cache.php` to the `/wp-content/` directory
 
-1. Add this line the top of `wp-config.php` to activate Batcache:
+3. Add this line the top of `wp-config.php` to activate Batcache:
 
 `define('WP_CACHE', true);`
 
-1. Test by reloading a page in your browser several times and then viewing the source. Just above the `</head>` closing tag you should see some Batcache stats.
+4. Test by reloading a page in your browser several times and then viewing the source. Just above the `</head>` closing tag you should see some Batcache stats.
 
-1. Tweak the options near the top of `advanced-cache.php`
+5. Tweak the options near the top of `advanced-cache.php`
 
-1. *Optional* Upload `batcache.php` to the `/wp-content/plugins/` directory.
+6. *Optional* Upload `batcache.php` to the `/wp-content/plugins/` directory.
+
+7. *Optional* Allow for Mobile User Agent Detection:
+
+Uncomment `$batcache->unique['mobile'] = is_mobile_user_agent();` And add a function called "is_mobile_user_agent" above your call to `define('WP_CACHE', true);` in `wp-config.php` (example function here: http://pastie.org/3239778).
 
 = Memcached backend =
 
 1. Install [memcached](http://danga.com/memcached) on at least one server. Note the connection info. The default is `127.0.0.1:11211`.
 
-1. Install the [PECL memcached extension](http://pecl.php.net/package/memcache) and [Ryan's Memcached backend 2.0](http://svn.wp-plugins.org/memcached/trunk/). Use the [1.0 branch](http://svn.wp-plugins.org/memcached/branches/1.0/) if you don't have or can't install the PECL extension.
+2. Install the [PECL memcached extension](http://pecl.php.net/package/memcache) and [Ryan's Memcached backend 2.0](http://svn.wp-plugins.org/memcached/trunk/). Use the [1.0 branch](http://svn.wp-plugins.org/memcached/branches/1.0/) if you don't have or can't install the PECL extension.
 
 == Frequently Asked Questions ==
 
