@@ -244,6 +244,7 @@ $batcache->url_version = (int) wp_cache_get("{$batcache->url_key}_version", $bat
 // If the document has been updated and we are the first to notice, regenerate it.
 if ( $batcache->do !== false && isset($batcache->cache['version']) && $batcache->cache['version'] < $batcache->url_version )
 	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group);
+else $batcache->genlock = 0;
 
 // Did we find a batcached page that hasn't expired?
 if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcache->cache['time'] + $batcache->max_age ) {
