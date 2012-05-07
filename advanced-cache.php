@@ -150,7 +150,7 @@ if ( strstr( $_SERVER['SCRIPT_FILENAME'], 'wp-includes/js' ) )
 	return;
 
 // Only batcache GET requests
-if ( ! empty( $_SERVER['REQUEST_METHOD'] != "GET" )
+if ( $_SERVER['REQUEST_METHOD'] != "GET" )
 	return;
 
 // Never batcache when cookies indicate a cache-exempt visitor.
