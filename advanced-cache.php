@@ -100,7 +100,7 @@ class batcache {
 			}
 		}
 
-		wp_cache_set($this->key, $cache, $this->group, $this->max_age + $this->seconds + 30);
+		wp_cache_set($this->key, $cache, $this->group, apply_filters( 'batcache_max_age', $this->max_age ) + $this->seconds + 30);
 
 		// Unlock regeneration
 		wp_cache_delete("{$this->url_key}_genlock", $this->group);
