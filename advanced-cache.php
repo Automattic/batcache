@@ -92,12 +92,21 @@ class batcache {
 			'version' => $this->url_version
 		);
 
-		if ( function_exists( 'apache_response_headers' ) ) {
-			$cache['headers'] = apache_response_headers();
-			if ( !empty( $this->uncached_headers ) ) foreach ( $cache['headers'] as $header => $value ) {
-				if ( in_array( strtolower( $header ), $this->uncached_headers ) )
-					unset( $cache['headers'][$header] );
+		$cache['headers'] = array();
+
+		if ( function_exists( 'headers_list' ) ) {
+			foreach (headers_list() as $h) {
+				list ($k, $v) = explode(":", $h);
+				$cache['headers'][$k] = trim($v);
 			}
+		}
+    else if ( function_exists( 'apache_response_headers' ) ) {
+			$cache['headers'] = apache_response_headers();
+		}
+
+		if ( !empty( $this->uncached_headers ) ) foreach ( $cache['headers'] as $header => $value ) {
+			if ( in_array( strtolower( $header ), $this->uncached_headers ) )
+				unset( $cache['headers'][$header] );
 		}
 
 		wp_cache_set($this->key, $cache, $this->group, $this->max_age + $this->seconds + 30);
