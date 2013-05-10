@@ -42,6 +42,8 @@ class batcache {
 	// This is the base configuration. You can edit these variables or move them into your wp-config.php file.
 	var $max_age =  300; // Expire batcache items aged this many seconds (zero to disable batcache)
 
+	var $stale_if_error = 0; // If not zero, will set stale-if-error extension for Cache-Control (e.g. for Squid)
+
 	var $remote  =    0; // Zero disables sending buffers to remote datacenters (req/sec is never sent)
 
 	var $times   =    2; // Only batcache a page after it is accessed this many times... (two or more)
@@ -105,6 +107,20 @@ class batcache {
 		}
 
 		return $status;
+	}
+
+	function get_cache_control_directives() {
+		$directives = array();
+		$max_age = $this->max_age;
+		if ( ! empty( $this->cache['time'] ) ) {
+			$max_age = max( 0, $max_age - time() + $this->cache['time'] );
+		}
+		$directives[] = sprintf( 'max-age=%d', $max_age );
+		$directives[] = 'must-revalidate';
+		if ( $this->stale_if_error > 0 ) {
+			$directives[] = sprintf( 'stale-if-error=%d', $this->stale_if_error );
+		}
+		return $directives;
 	}
 
 	function do_headers( $headers1, $headers2 = array() ) {
@@ -228,7 +244,7 @@ class batcache {
 			if ( !isset($this->cache['headers']['Last-Modified']) )
 				header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $this->cache['time'] ) . ' GMT', true );
 			if ( !isset($this->cache['headers']['Cache-Control']) )
-				header("Cache-Control: max-age=$this->max_age, must-revalidate", false);
+				header( 'Cache-Control: ' . join( ', ', $this->get_cache_control_directives() ), false );
 		}
 
 		$this->do_headers( $this->headers );
@@ -509,7 +525,7 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 	// Use the batcache save time for Last-Modified so we can issue "304 Not Modified" but don't clobber a cached Last-Modified header.
 	if ( $batcache->cache_control && !isset($batcache->cache['headers']['Last-Modified'][0]) ) {
 		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $batcache->cache['time'] ) . ' GMT', true );
-		header('Cache-Control: max-age=' . ($batcache->cache['max_age'] - time() + $batcache->cache['time']) . ', must-revalidate', true);
+		header( 'Cache-Control: ' . join( ', ', $batcache->get_cache_control_directives() ), true );
 	}
 
 	// Add some debug info just before </head>
