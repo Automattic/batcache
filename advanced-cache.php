@@ -12,6 +12,7 @@ function batcache_cancel() {
 class batcache {
 	// This is the base configuration. You can edit these variables or move them into your wp-config.php file.
 	var $max_age =  300; // Expire batcache items aged this many seconds (zero to disable batcache)
+	var $stale_if_error = 0; // If not zero, will set stale-if-error extension for Cache-Control (e.g. for Squid)
 	
 	var $remote  =    0; // Zero disables sending buffers to remote datacenters (req/sec is never sent)
 	
@@ -69,6 +70,20 @@ class batcache {
 		}
 
 		return $status;
+	}
+
+	function get_cache_control_directives() {
+		$directives = array();
+		$max_age = $this->max_age;
+		if ( !empty($this->cache['time']) ) {
+			$max_age = max(0, $max_age - time() + $this->cache['time']);
+		}
+		$directives[] = sprintf( 'max-age=%d', $max_age );
+		$directives[] = 'must-revalidate';
+		if ( $this->stale_if_error > 0 ) {
+			$directives[] = sprintf( 'stale-if-error=%d', $this->stale_if_error );
+		}
+		return $directives;
 	}
 
 	function configure_groups() {
@@ -143,7 +158,7 @@ class batcache {
 
 		if ( $this->cache_control ) {
 			header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $cache['time'] ) . ' GMT', true );
-			header("Cache-Control: max-age=$this->max_age, must-revalidate", false);
+			header('Cache-Control: ' . join(', ', $this->get_cache_control_directives()), false);
 		}
 
 		if ( !empty($this->headers) ) foreach ( $this->headers as $k => $v ) {
@@ -338,7 +353,7 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 	// Use the batcache save time for Last-Modified so we can issue "304 Not Modified"
 	if ( $batcache->cache_control ) {
 		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $batcache->cache['time'] ) . ' GMT', true );
-		header('Cache-Control: max-age=' . ($batcache->max_age - time() + $batcache->cache['time']) . ', must-revalidate', true);
+		header( 'Cache-Control: ' . join(', ', $batcache->get_cache_control_directives()), true );
 	}
 
 	// Add some debug info just before </head>
