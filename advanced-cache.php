@@ -77,6 +77,9 @@ class batcache {
 
 		// Remember, $wp_object_cache was clobbered in wp-settings.php so we have to repeat this.
 		$this->configure_groups();
+		
+		// Unlock regeneration
+		wp_cache_delete( "{$this->url_key}_genlock", $this->group );
 
 		// Do not batcache blank pages (usually they are HTTP redirects)
 		$output = trim($output);
@@ -101,9 +104,6 @@ class batcache {
 		}
 
 		wp_cache_set($this->key, $cache, $this->group, $this->max_age + $this->seconds + 30);
-
-		// Unlock regeneration
-		wp_cache_delete("{$this->url_key}_genlock", $this->group);
 
 		if ( $this->cache_control ) {
 			header('Last-Modified: ' . date('r', $cache['time']), true);
