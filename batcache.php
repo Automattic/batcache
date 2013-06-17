@@ -26,7 +26,7 @@ function batcache_post($post_id) {
 	global $batcache;
 
 	$post = get_post($post_id);
-	if ( $post->post_type == 'revision' || get_post_status($post_id) != 'publish' )
+	if ( empty( $post ) || $post->post_type == 'revision' || get_post_status($post_id) != 'publish' )
 		return;
 
 	batcache_clear_url( get_option('home') );
