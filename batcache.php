@@ -41,9 +41,18 @@ function batcache_clear_url($url) {
 	return wp_cache_incr("{$url_key}_version", 1, $batcache->group);
 }
 
-//We need to clean when we send some post to the trash too
+//We need to clean when we send some post/page to the trash too
 add_action('trashed_post', 'batcache_clear_posttrash');
 function batcache_clear_posttrash($post_id) {
+	if ( empty($post_id) )
+		return;
+
+	batcache_clear_postcache($post_id);
+}
+
+//And if we clean the cache when we edit a post/page too?
+add_action('post_updated', 'batcache_clear_postedit', 10, 3 );
+function batcache_clear_postedit( $post_id, $post_after, $post_before ) {
 	if ( empty($post_id) )
 		return;
 
