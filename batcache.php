@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/batcache/
 Description: This optional plugin improves Batcache.
 Author: Andy Skelton
 Author URI: http://andyskelton.com/
-Version: 1.0
+Version: 1.2
 */
 
 // Do not load if our advanced-cache.php isn't loaded
@@ -26,12 +26,10 @@ function batcache_post($post_id) {
 	global $batcache;
 
 	$post = get_post($post_id);
-	if ( empty( $post ) || $post->post_type == 'revision' || get_post_status($post_id) != 'publish' )
+	if ( $post->post_type == 'revision' || get_post_status($post_id) != 'publish' )
 		return;
 
-	batcache_clear_url( get_option('home') );
-	batcache_clear_url( trailingslashit( get_option('home') ) );
-	batcache_clear_url( get_permalink($post_id) );
+	batcache_clear_postcache($post_id);
 }
 
 function batcache_clear_url($url) {
@@ -43,3 +41,23 @@ function batcache_clear_url($url) {
 	return wp_cache_incr("{$url_key}_version", 1, $batcache->group);
 }
 
+//We need to clean when we send some post to the trash too
+add_action('trashed_post', 'batcache_clear_posttrash');
+function batcache_clear_posttrash($post_id) {
+	if ( empty($post_id) )
+		return;
+
+	batcache_clear_postcache($post_id);
+}
+
+//Just for the sake of not duplicate code
+function batcache_clear_postcache($post_id) {
+	if ( empty($post_id) )
+		return false;
+
+	batcache_clear_url( get_option('home') );
+	batcache_clear_url( trailingslashit( get_option('home') ) );
+	batcache_clear_url( get_permalink($post_id) );
+
+	return true;
+}
