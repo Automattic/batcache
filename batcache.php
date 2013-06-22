@@ -51,13 +51,14 @@ function batcache_clear_posttrash($post_id) {
 }
 
 //And if we clean the cache when we edit a post/page too?
-add_action('post_updated', 'batcache_clear_postedit', 10, 3 );
+//Too much for a big loaded website, really. Too much (if your editors/authors edit in mass)
+/*add_action('post_updated', 'batcache_clear_postedit', 10, 3 );
 function batcache_clear_postedit( $post_id, $post_after, $post_before ) {
 	if ( empty($post_id) )
 		return;
 
 	batcache_clear_postcache($post_id);
-}
+}*/
 
 //Just for the sake of not duplicate code
 function batcache_clear_postcache($post_id) {
