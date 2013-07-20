@@ -5,7 +5,8 @@ Plugin URI: http://wordpress.org/extend/plugins/batcache/
 Description: This optional plugin improves Batcache.
 Author: Andy Skelton
 Author URI: http://andyskelton.com/
-Version: 1.0
+Version: 1.3-alpha
+Network: true
 */
 
 // Do not load if our advanced-cache.php isn't loaded
@@ -16,6 +17,8 @@ $batcache->configure_groups();
 
 // Regen home and permalink on posts and pages
 add_action('clean_post_cache', 'batcache_post');
+add_action('wp_trash_post', 'batcache_post'); //when sent to trash
+
 
 // Regen permalink on comments (TODO)
 //add_action('comment_post',          'batcache_comment');
