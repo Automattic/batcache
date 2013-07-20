@@ -339,6 +339,7 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 		if ( isset($batcache->cache['headers']['Last-Modified']) )
 			$batcache->cache['time'] = strtotime( $batcache->cache['headers']['Last-Modified'] );
 		if ( $batcache->cache['time'] == $since ) {
+			header('Cache-Control: max-age=' . ($batcache->max_age - time() + $batcache->cache['time']) . ', must-revalidate', true);
 			header('Last-Modified: ' . $_SERVER['HTTP_IF_MODIFIED_SINCE'], true, 304);
 			exit;
 		}
