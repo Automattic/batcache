@@ -113,7 +113,7 @@ class batcache {
 		// Construct and save the batcache
 		$cache = array(
 			'output' => $output,
-			'time' => time(),
+			'time' => isset($_SERVER['REQUEST_TIME']) ? $_SERVER['REQUEST_TIME'] : time(),
 			'timer' => $this->timer_stop(false, 3),
 			'status_header' => $this->status_header,
 			'redirect_status' => $this->redirect_status,
