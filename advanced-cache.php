@@ -167,7 +167,7 @@ class batcache {
 				"X-batcache: Caching, generated in %ums, expires in %us (%us TTL)",
 				$cache['timer'] * 1000,
 				$this->max_age,
-                                $this->max_age
+				$this->max_age
 			), true);
 		}
 
