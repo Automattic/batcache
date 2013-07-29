@@ -363,7 +363,7 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 			"X-batcache: Cached, generated in %ums, expires in %us (%us TTL), served in %ums",
 			$batcache->cache['timer'] * 1000,
 			$batcache->max_age - time() + $batcache->cache['time'],
-                        $batcache->max_age,
+			$batcache->max_age,
 			$batcache->timer_stop(false, 3) * 1000
 		), true);
 	}
