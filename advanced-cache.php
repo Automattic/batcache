@@ -239,7 +239,8 @@ if ( $batcache->seconds < 1 || $batcache->times < 2 ) {
 }
 
 // Recreate the permalink from the URL
-$batcache->permalink = 'http://' . $batcache->keys['host'] . $batcache->keys['path'] . ( isset($batcache->keys['query']['p']) ? "?p=" . $batcache->keys['query']['p'] : '' );
+$protocol = ( isset( $batcache->keys['ssl'] ) && true === $batcache->keys['ssl'] ) ? 'https://' : 'http://';
+$batcache->permalink = $protocol . $batcache->keys['host'] . $batcache->keys['path'] . ( isset($batcache->keys['query']['p']) ? "?p=" . $batcache->keys['query']['p'] : '' );
 $batcache->url_key = md5($batcache->permalink);
 $batcache->url_version = (int) wp_cache_get("{$batcache->url_key}_version", $batcache->group);
 
