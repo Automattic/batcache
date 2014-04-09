@@ -417,6 +417,11 @@ if ( $batcache->seconds < 1 || $batcache->times < 2 ) {
 		else
 			$batcache->do = false;
 	}
+	else
+	{
+		//Don't cache if we found item in cache
+		$batcache->do = false;
+	}
 }
 
 // If the document has been updated and we are the first to notice, regenerate it.
