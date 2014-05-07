@@ -430,6 +430,9 @@ if ( $batcache->do !== false && isset($batcache->cache['version']) && $batcache-
 if ( !isset($batcache->cache['max_age']) )
 	$batcache->cache['max_age'] = $batcache->max_age;
 
+//Fix notice level error when genlock is undefined
+if(!isset($batcache->genlock))
+	$batcache->genlock = false;
 
 // Did we find a batcached page that hasn't expired?
 if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcache->cache['time'] + $batcache->cache['max_age'] ) {
