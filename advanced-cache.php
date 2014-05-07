@@ -69,6 +69,9 @@ class batcache {
 
 	var $noskip_cookies = array( 'wordpress_test_cookie' ); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
 
+	var $genlock = false;
+	var $do = false;
+
 	function batcache( $settings ) {
 		if ( is_array( $settings ) ) foreach ( $settings as $k => $v )
 			$this->$k = $v;
@@ -466,6 +469,7 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 	}
 
 	// Respect ETags served with feeds.
+	$three04 = false;
 	if ( isset( $SERVER['HTTP_IF_NONE_MATCH'] ) && isset( $batcache->cache['headers']['ETag'][0] ) && $_SERVER['HTTP_IF_NONE_MATCH'] == $batcache->cache['headers']['ETag'][0] )
 		$three04 = true;
 
