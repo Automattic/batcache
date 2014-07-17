@@ -388,7 +388,7 @@ $batcache->keys = array(
 	'host' => $_SERVER['HTTP_HOST'],
 	'method' => $_SERVER['REQUEST_METHOD'],
 	'path' => ( $batcache->pos = strpos($_SERVER['REQUEST_URI'], '?') ) ? substr($_SERVER['REQUEST_URI'], 0, $batcache->pos) : $_SERVER['REQUEST_URI'],
-	'query' => $batcache->query,
+	'query' => ( isset($batcache->query) ) ? $batcache->query : '',
 	'extra' => $batcache->unique
 );
 
