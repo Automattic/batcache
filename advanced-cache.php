@@ -69,6 +69,8 @@ class batcache {
 
 	var $noskip_cookies = array( 'wordpress_test_cookie' ); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
 
+	var $add_hit_status_header = true; // Add X-Batache HTTP header for "HIT" "BYPASS" "MISS" etc
+
 	var $genlock = false;
 	var $do = false;
 
@@ -465,6 +467,10 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 			}
 			header("Location: $location");
 		}
+
+		if ( $batcache->add_hit_status_header ) {
+			header( 'X-Batcache: HIT' );
+		}
 		exit;
 	}
 
@@ -500,11 +506,20 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 
 	if ( $three04 ) {
 		header("HTTP/1.1 304 Not Modified", true, 304);
+
+		if ( $batcache->add_hit_status_header ) {
+			header( 'X-Batcache: HIT' );
+		}
+
 		die;
 	}
 
 	if ( !empty($batcache->cache['status_header']) )
 		header($batcache->cache['status_header'], true);
+
+	if ( $batcache->add_hit_status_header ) {
+		header( 'X-Batcache: HIT' );
+	}
 
 	// Have you ever heard a death rattle before?
 	die($batcache->cache['output']);
@@ -513,6 +528,10 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 // Didn't meet the minimum condition?
 if ( !$batcache->do && !$batcache->genlock )
 	return;
+
+if ( $batcache->add_hit_status_header ) {
+	header( 'X-Batcache: MISS' );
+}
 
 $wp_filter['status_header'][10]['batcache'] = array( 'function' => array(&$batcache, 'status_header'), 'accepted_args' => 2 );
 $wp_filter['wp_redirect_status'][10]['batcache'] = array( 'function' => array(&$batcache, 'redirect_status'), 'accepted_args' => 2 );
