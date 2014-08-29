@@ -74,6 +74,9 @@ class batcache {
 	var $genlock = false;
 	var $do = false;
 
+	var $use_stale = true // Allow stale cache to be served to the client while the page is regenerating (requires PHP-FPM)
+	var $stale_max_age = 30 // Maximum age of the stale cache that can be served. Use 0 for "forever"
+
 	function batcache( $settings ) {
 		if ( is_array( $settings ) ) foreach ( $settings as $k => $v )
 			$this->$k = $v;
@@ -233,7 +236,19 @@ class batcache {
 
 		$this->cache['max_age'] = $this->max_age;
 
-		wp_cache_set($this->key, $this->cache, $this->group, $this->max_age + $this->seconds + 30);
+		if ( $this->use_stale ) {
+
+			$expire = $this->stale_max_age + $this->max_age + $this->seconds + 30;
+
+			if ( $this->stale_max_age === 0 ) {
+				$expire = 0;
+			}
+
+			wp_cache_set( $this->key, $this->cache, $this->group, $expire );
+		} else {
+			wp_cache_set( $this->key, $this->cache, $this->group, $this->max_age + $this->seconds + 30 );	
+		}
+		
 
 		// Unlock regeneration
 		wp_cache_delete("{$this->url_key}_genlock", $this->group);
@@ -496,7 +511,7 @@ if ( !isset($batcache->cache['max_age']) )
 
 
 // Did we find a batcached page that hasn't expired?
-if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcache->cache['time'] + $batcache->cache['max_age'] ) {
+if ( isset($batcache->cache['time']) && ! $batcache->genlock && ( time() < $batcache->cache['time'] + $batcache->cache['max_age'] || ( $batcache->use_stale && time() < $batcache->cache['time'] + $batcache->cache['max_age'] + $batcache->stale_max_age ) || ( $batcache->use_stale && $batcache->stale_max_age === 0 ) ) ) {
 	// Issue redirect if cached and enabled
 	if ( $batcache->cache['redirect_status'] && $batcache->cache['redirect_location'] && $batcache->cache_redirects ) {
 		$status = $batcache->cache['redirect_status'];
@@ -532,8 +547,7 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 
 		if ( $batcache->add_hit_status_header ) {
 			header( 'X-Batcache: HIT' );
-		}
-		exit;
+		}	
 	}
 
 	// Respect ETags served with feeds.
@@ -583,8 +597,20 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 		header( 'X-Batcache: HIT' );
 	}
 
-	// Have you ever heard a death rattle before?
-	die($batcache->cache['output']);
+	// If serving stale cache is enabled, then output it, finish the request and continue as normal
+	if ( function_exists( 'fastcgi_finish_request' ) && $batcache->use_stale && time() >= $batcache->cache['time'] + $batcache->cache['max_age'] ) {
+
+		if ( $batcache->add_hit_status_header ) {
+			header( 'X-Batcache: UPDATING' );	
+		}
+		
+		echo $batcache->cache['output'];
+		fastcgi_finish_request();
+	} else {
+		// Have you ever heard a death rattle before?
+		echo $batcache->cache['output'];
+		exit;	
+	}
 }
 
 // Didn't meet the minimum condition?
