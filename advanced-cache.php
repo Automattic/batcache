@@ -74,8 +74,9 @@ class batcache {
 	var $genlock = false;
 	var $do = false;
 
-	var $use_stale = true // Allow stale cache to be served to the client while the page is regenerating (requires PHP-FPM)
-	var $stale_max_age = 30 // Maximum age of the stale cache that can be served. Use 0 for "forever"
+	var $use_stale = true; // Allow stale cache to be served to the client while the page is regenerating (requires PHP-FPM)
+	var $stale_max_age = 30; // Maximum age of the stale cache that can be served. Use 0 for "forever"
+	var $sent_stale = false;
 
 	function batcache( $settings ) {
 		if ( is_array( $settings ) ) foreach ( $settings as $k => $v )
