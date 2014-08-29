@@ -606,7 +606,13 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && ( time() < $batc
 		}
 		
 		echo $batcache->cache['output'];
+		$batcache->sent_stale = true;
 		fastcgi_finish_request();
+
+		// now delete the cache and let it be regenerated. We have to delete it incase "this time" anythign
+		// calls batcache_cancel we don't want the same to happen over and over again
+		wp_cache_delete( $batcache->key, $batcache->group );
+
 	} else {
 		// Have you ever heard a death rattle before?
 		echo $batcache->cache['output'];
