@@ -377,6 +377,17 @@ if ( ! empty( $GLOBALS['HTTP_RAW_POST_DATA'] ) || ! empty( $_POST ) || $_SERVER[
 	return;
 }
 
+// Never cache Basic Auth'ed requests.
+if ( ! empty( $_SERVER['PHP_AUTH_USER'] ) ) {
+
+	if ( $batcache->add_hit_status_header ) {
+		header( 'X-Batcache: BYPASS' );
+		header( 'X-Batcache-Reason: Basic Auth Request' );
+	}
+
+	return;
+}
+
 // Never batcache when cookies indicate a cache-exempt visitor.
 if ( is_array( $_COOKIE) && ! empty( $_COOKIE ) ) {
 	foreach ( array_keys( $_COOKIE ) as $batcache->cookie ) {
