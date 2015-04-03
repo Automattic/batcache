@@ -302,7 +302,7 @@ HTML;
 		if ( false === $head_position ) {
 			return;
 		}
-		$this->cache['output'] = substr_replace( $this->cache['output'], $debug_html, $head_position, 0 );
+		$this->cache['output'] .= "\n$debug_html";
 	}
 }
 
