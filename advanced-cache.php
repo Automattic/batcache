@@ -70,7 +70,7 @@ class batcache {
 	var $noskip_cookies = array( 'wordpress_test_cookie' ); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
 
 	var $add_hit_status_header = true; // Add X-Batache HTTP header for "HIT" "BYPASS" "MISS" etc
-
+	var $ignored_query_string_params = array();
 	var $genlock = false;
 	var $do = false;
 
@@ -456,8 +456,10 @@ if ( ! method_exists( $GLOBALS['wp_object_cache'], 'incr' ) )
 header('Vary: Cookie', false);
 
 // Things that define a unique page.
-if ( isset( $_SERVER['QUERY_STRING'] ) )
+if ( isset( $_SERVER['QUERY_STRING'] ) ) {
 	parse_str($_SERVER['QUERY_STRING'], $batcache->query);
+	$batcache->query = array_diff_key( $batcache->query, array_flip( $batcache->ignored_query_string_params ) );
+}
 
 $batcache->keys = array(
 	'host' => $_SERVER['HTTP_HOST'],
