@@ -153,7 +153,7 @@ class batcache {
 	}
 
 	function ob($output) {
-		if ( $this->cancel !== false )
+		if ( $this->cancel !== false || defined('DONOTCACHEPAGE') && DONOTCACHEPAGE )
 			return $output;
 
 		// PHP5 and objects disappearing before output buffers?
