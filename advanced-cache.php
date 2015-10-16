@@ -153,6 +153,9 @@ class batcache {
 	}
 
 	function ob($output) {
+		
+		do_action( 'batcache', $this );
+		
 		if ( $this->cancel !== false )
 			return $output;
 
