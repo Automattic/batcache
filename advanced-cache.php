@@ -335,9 +335,10 @@ if ( in_array(
 if ( strstr( $_SERVER['SCRIPT_FILENAME'], 'wp-includes/js' ) )
 	return;
 
-// Never batcache when POST data is present.
-if ( ! empty( $GLOBALS['HTTP_RAW_POST_DATA'] ) || ! empty( $_POST ) )
+// Never batcache a POST request.
+if ( ! empty( $GLOBALS['HTTP_RAW_POST_DATA'] ) || ! empty( $_POST ) || ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'] ) ) {
 	return;
+}
 
 // Never batcache when cookies indicate a cache-exempt visitor.
 if ( is_array( $_COOKIE) && ! empty( $_COOKIE ) ) {
