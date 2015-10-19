@@ -160,6 +160,9 @@ class batcache {
 
 		// Remember, $wp_object_cache was clobbered in wp-settings.php so we have to repeat this.
 		$this->configure_groups();
+		
+		// Unlock regeneration
+		wp_cache_delete( "{$this->url_key}_genlock", $this->group );
 
 		if ( $this->cancel !== false ) {
 			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
@@ -219,9 +222,6 @@ class batcache {
 		$this->cache['max_age'] = $this->max_age;
 
 		wp_cache_set($this->key, $this->cache, $this->group, $this->max_age + $this->seconds + 30);
-
-		// Unlock regeneration
-		wp_cache_delete("{$this->url_key}_genlock", $this->group);
 
 		if ( $this->cache_control ) {
 			// Don't clobber Last-Modified header if already set, e.g. by WP::send_headers()
