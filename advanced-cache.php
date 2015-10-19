@@ -70,6 +70,7 @@ class batcache {
 
 	var $noskip_cookies = array( 'wordpress_test_cookie' ); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
 
+	var $query = '';
 	var $genlock = false;
 	var $do = false;
 
