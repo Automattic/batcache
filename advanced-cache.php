@@ -328,6 +328,7 @@ if ( in_array(
 		array(
 			'wp-app.php',
 			'xmlrpc.php',
+			'wp-cron.php',
 		) ) )
 	return;
 
