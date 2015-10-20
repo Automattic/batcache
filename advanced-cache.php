@@ -64,6 +64,8 @@ class batcache {
 
 	var $debug   = true; // Set false to hide the batcache info <!-- comment -->
 
+	var $debug_html_fragments = false; // Set to true to amend batcache info to HTML fragments (that don't contain <head>)
+
 	var $cache_control = true; // Set false to disable Last-Modified and Cache-Control headers
 
 	var $cancel = false; // Change this to cancel the output buffer. Use batcache_cancel();
@@ -309,7 +311,7 @@ HTML;
 		}
 
 		$head_position = strpos( $this->cache['output'], '<head' );
-		if ( false === $head_position ) {
+		if ( false === $head_position && ! $this->debug_html_fragments ) {
 			return;
 		}
 		$this->cache['output'] .= "\n$debug_html";
