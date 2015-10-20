@@ -54,9 +54,9 @@ function batcache_clear_url($url) {
 	if ( false !== $batcache_no_remote_group_key ) {
 		// The *_version key needs to be replicated remotely, otherwise invalidation won't work.
 		// The race condition here should be acceptable.
-		unset( $wp_object_cache->no_remote_groups[$batcache_group_key] );
+		unset( $wp_object_cache->no_remote_groups[ $batcache_no_remote_group_key ] );
 		$retval = wp_cache_set( "{$url_key}_version", $retval, $batcache->group );
-		$wp_object_cache->no_remote_groups[$batcache_group_key] = $batcache->group;
+		$wp_object_cache->no_remote_groups[ $batcache_no_remote_group_key ] = $batcache->group;
 	}
 
 	return $retval;
