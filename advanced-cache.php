@@ -420,7 +420,7 @@ $batcache->generate_keys();
 // Get the batcache
 $batcache->cache = wp_cache_get($batcache->key, $batcache->group);
 
-if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] < $batcache->url_version ) {
+if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $batcache->url_version ) {
 	// Always refresh the cache if a newer version is available.
 	$batcache->do = true;
 } else if ( $batcache->seconds < 1 || $batcache->times < 2 ) {
