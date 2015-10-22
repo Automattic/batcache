@@ -527,6 +527,8 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 	if ( !empty($batcache->cache['status_header']) )
 		header($batcache->cache['status_header'], true);
 
+	batcache_stats( 'batcache', 'total_cached_views' );
+
 	// Have you ever heard a death rattle before?
 	die($batcache->cache['output']);
 }
