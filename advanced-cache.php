@@ -388,6 +388,16 @@ if ( ! empty( $_SERVER['PHP_AUTH_USER'] ) ) {
 	return;
 }
 
+if ( ! empty( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
+
+	if ( $batcache->add_hit_status_header ) {
+		header( 'X-Batcache: BYPASS' );
+		header( 'X-Batcache-Reason: Auth Request' );
+	}
+
+	return;
+}
+
 // Never batcache when cookies indicate a cache-exempt visitor.
 if ( is_array( $_COOKIE) && ! empty( $_COOKIE ) ) {
 	foreach ( array_keys( $_COOKIE ) as $batcache->cookie ) {
