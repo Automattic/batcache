@@ -34,15 +34,19 @@ function batcache_post($post_id) {
 	batcache_clear_url( $home . 'feed/' );
 	batcache_clear_url( get_permalink( $post_id ) );
 	
-	// Clear all category, tag and post format pages
-	$taxonomies = get_object_taxonomies( $post->post_type, 'names' );
-        $term_list = wp_get_post_terms( $post_id, $taxonomies, array( "fields" => "all" ) );
-        foreach( $term_list as $term ){
-             batcache_clear_url( get_term_link( $term ) );
-        }
         // Clear author archive
 	batcache_clear_url(get_author_posts_url( $post->post_author ));
 }
+
+function batcache_term( $ids, $taxonomy ){
+        foreach( $ids as $term ){
+           $term_link = get_term_link( $term, $taxonomy );
+           if( !is_wp_error( $term_link ) ){
+                batcache_clear_url( $term_link );
+           }
+        }
+}
+add_action( 'clean_term_cache', 'batcache_term', 10, 2 );
 
 function batcache_clear_url($url) {
 	global $batcache, $wp_object_cache;
