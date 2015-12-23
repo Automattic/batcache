@@ -63,7 +63,7 @@ class batcache {
 
 	var $debug   = true; // Set false to hide the batcache info <!-- comment -->
 
-	var $cache_control = false; // Set false to disable Last-Modified and Cache-Control headers
+	var $cache_control = true; // Set false to disable Last-Modified and Cache-Control headers
 
 	var $cancel = false; // Change this to cancel the output buffer. Use batcache_cancel();
 
