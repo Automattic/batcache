@@ -349,6 +349,7 @@ if ( in_array(
 		array(
 			'wp-app.php',
 			'xmlrpc.php',
+			'wp-cron.php',
 		) ) ) {
 
 	if ( $batcache->add_hit_status_header ) {
