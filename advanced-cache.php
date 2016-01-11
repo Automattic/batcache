@@ -71,6 +71,7 @@ class batcache {
 
 	var $add_hit_status_header = true; // Add X-Batache HTTP header for "HIT" "BYPASS" "MISS" etc
 	var $ignored_query_string_params = array();
+	var $query = '';
 	var $genlock = false;
 	var $do = false;
 
