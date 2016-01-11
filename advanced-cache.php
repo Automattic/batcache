@@ -594,6 +594,8 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 	if ( !empty($batcache->cache['status_header']) )
 		header($batcache->cache['status_header'], true);
 
+	batcache_stats( 'batcache', 'total_cached_views' );
+
 	if ( $batcache->add_hit_status_header ) {
 		header( 'X-Batcache: HIT' );
 	}
