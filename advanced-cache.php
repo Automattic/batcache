@@ -64,7 +64,7 @@ class batcache {
 
 	var $debug   = true; // Set false to hide the batcache info <!-- comment -->
 
-	var $cache_control = false; // Set false to disable Last-Modified and Cache-Control headers
+	var $cache_control = true; // Set false to disable Last-Modified and Cache-Control headers
 
 	var $cancel = false; // Change this to cancel the output buffer. Use batcache_cancel();
 
@@ -160,7 +160,11 @@ class batcache {
 		if ( $this->cancel !== false ) {
 
 			if ( $this->add_hit_status_header ) {
+				if ( $this->cache_control ) {
+					header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+				}
 				header( 'X-Batcache: BYPASS' );
+				header( 'X-Batcache-Reason: Canceled' );
 			}
 			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
 
@@ -175,10 +179,16 @@ class batcache {
 
 		// Do not batcache blank pages unless they are HTTP redirects
 		$output = trim($output);
+
 		if ( $output === '' && (!$this->redirect_status || !$this->redirect_location) ) {
+
+			if ( $this->cache_control ) {
+				header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+			}
 
 			if ( $this->add_hit_status_header ) {
 				header( 'X-Batcache: BYPASS' );
+				header( 'X-Batcache-Reason: No content' );
 			}
 
 			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
@@ -188,8 +198,13 @@ class batcache {
 		// Do not cache 5xx responses
 		if ( isset( $this->status_code ) && intval($this->status_code / 100) == 5 ) {
 
+			if ( $this->cache_control ) {
+				header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+			}
+
 			if ( $this->add_hit_status_header ) {
 				header( 'X-Batcache: BYPASS' );
+				header( 'X-Batcache-Reason: Bad status code' );
 			}
 
 			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
@@ -225,8 +240,13 @@ class batcache {
 			// Do not cache if cookies were set
 			if ( strtolower( $header ) === 'set-cookie' ) {
 
+				if ( $this->cache_control ) {
+					header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+				}
+
 				if ( $this->add_hit_status_header ) {
 					header( 'X-Batcache: BYPASS' );
+					header( 'X-Batcache-Reason: Set-Cookie' );
 				}
 
 				wp_cache_delete( "{$this->url_key}_genlock", $this->group );
@@ -358,18 +378,24 @@ if ( in_array(
 			'xmlrpc.php',
 			'wp-cron.php',
 		) ) ) {
-
+	if ( $batcache->cache_control ) {
+		header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+	}
 	if ( $batcache->add_hit_status_header ) {
 		header( 'X-Batcache: BYPASS' );
+		header( 'X-Batcache-Reason: Filename' );
 	}
 	return;
 }
 
 // Never batcache WP javascript generators
 if ( strstr( $_SERVER['SCRIPT_FILENAME'], 'wp-includes/js' ) ) {
-
+	if ( $batcache->cache_control ) {
+		header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+	}
 	if ( $batcache->add_hit_status_header ) {
 		header( 'X-Batcache: BYPASS' );
+		header( 'X-Batcache-Reason: JS Generator' );
 	}
 
 	return;
@@ -377,15 +403,36 @@ if ( strstr( $_SERVER['SCRIPT_FILENAME'], 'wp-includes/js' ) ) {
 
 // Never batcache a POST request.
 if ( ! empty( $GLOBALS['HTTP_RAW_POST_DATA'] ) || ! empty( $_POST ) || ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'] ) ) {
+
+	if ( $batcache->cache_control ) {
+		header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+	}
+	if ( $batcache->add_hit_status_header ) {
+		header( 'X-Batcache: BYPASS' );
+		header( 'X-Batcache-Reason: POST Request' );
+	}
+
 	return;
 }
 
 // Never cache Basic Auth'ed requests.
 if ( ! empty( $_SERVER['PHP_AUTH_USER'] ) ) {
-
+	if ( $batcache->cache_control ) {
+		header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+	}
 	if ( $batcache->add_hit_status_header ) {
 		header( 'X-Batcache: BYPASS' );
 		header( 'X-Batcache-Reason: Basic Auth Request' );
+	}
+
+	return;
+}
+
+if ( ! empty( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
+
+	if ( $batcache->add_hit_status_header ) {
+		header( 'X-Batcache: BYPASS' );
+		header( 'X-Batcache-Reason: Auth Request' );
 	}
 
 	return;
@@ -396,9 +443,12 @@ if ( is_array( $_COOKIE) && ! empty( $_COOKIE ) ) {
 	foreach ( array_keys( $_COOKIE ) as $batcache->cookie ) {
 		if ( ! in_array( $batcache->cookie, $batcache->noskip_cookies ) && ( substr( $batcache->cookie, 0, 2 ) == 'wp' || substr( $batcache->cookie, 0, 9 ) == 'wordpress' || substr( $batcache->cookie, 0, 14 ) == 'comment_author' ) ) {
 			batcache_stats( 'batcache', 'cookie_skip' );
-
+			if ( $batcache->cache_control ) {
+				header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+			}
 			if ( $batcache->add_hit_status_header ) {
 				header( 'X-Batcache: BYPASS' );
+				header( 'X-Batcache-Reason: Cookies' );
 			}
 
 			return;
@@ -628,4 +678,3 @@ $wp_filter['wp_redirect_status'][10]['batcache'] = array( 'function' => array(&$
 ob_start(array(&$batcache, 'ob'));
 
 // It is safer to omit the final PHP closing tag.
-
