@@ -497,7 +497,7 @@ if ( $batcache->seconds < 1 || $batcache->times < 2 ) {
 }
 
 // If the document has been updated and we are the first to notice, regenerate it.
-if ( $batcache->do !== false && isset($batcache->cache['version']) && $batcache->cache['version'] < $batcache->url_version )
+if ( $batcache->do !== false && isset($batcache->cache['version']) && $batcache->cache['version'] != $batcache->url_version )
 	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
 
 // Temporary: remove after 2010-11-12. I added max_age to the cache. This upgrades older caches on the fly.
