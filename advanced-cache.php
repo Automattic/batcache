@@ -59,6 +59,7 @@ class batcache {
 	var $redirect_status = false; // This is set to the response code during a redirect.
 	var $redirect_location = false; // This is set to the redirect location.
 
+	var $use_stale        = true; // Is it ok to return stale cached response when updating the cache?
 	var $uncached_headers = array('transfer-encoding'); // These headers will never be cached. Apply strtolower.
 
 	var $debug   = true; // Set false to hide the batcache info <!-- comment -->
@@ -161,6 +162,7 @@ class batcache {
 			if ( $this->add_hit_status_header ) {
 				header( 'X-Batcache: BYPASS' );
 			}
+			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
 
 			return $output;
 		}
@@ -179,6 +181,7 @@ class batcache {
 				header( 'X-Batcache: BYPASS' );
 			}
 
+			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
 			return;
 		}
 
@@ -188,6 +191,8 @@ class batcache {
 			if ( $this->add_hit_status_header ) {
 				header( 'X-Batcache: BYPASS' );
 			}
+
+			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
 			return $output;
 		}
 
@@ -224,6 +229,7 @@ class batcache {
 					header( 'X-Batcache: BYPASS' );
 				}
 
+				wp_cache_delete( "{$this->url_key}_genlock", $this->group );
 				return $output;
 			}
 
@@ -289,7 +295,7 @@ class batcache {
 	function generate_keys() {
 		// ksort($this->keys); // uncomment this when traffic is slow
 		$this->key = md5(serialize($this->keys));
-		$this->req_key = $this->key . '_req';
+		$this->req_key = $this->key . '_reqs';
 	}
 
 	function add_debug_just_cached() {
@@ -493,14 +499,18 @@ if ( isset($batcache->cache['version']) && $batcache->cache['version'] < $batcac
 		wp_cache_add($batcache->req_key, 0, $batcache->group);
 		$batcache->requests = wp_cache_incr($batcache->req_key, 1, $batcache->group);
 
-		if ( $batcache->requests >= $batcache->times )
+		if ( $batcache->requests >= $batcache->times &&
+		     time() >= $batcache->cache['time'] + $batcache->cache['max_age']
+		) {
+			wp_cache_delete( $batcache->req_key, $batcache->group );
 			$batcache->do = true;
-		else
+		} else {
 			$batcache->do = false;
+		}
 	}
 }
 
-// If the document has been updated and we are the first to notice, regenerate it.
+// Obtain cache generation lock
 if ( $batcache->do )
 	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
 
@@ -509,8 +519,13 @@ if ( !isset($batcache->cache['max_age']) )
 	$batcache->cache['max_age'] = $batcache->max_age;
 
 
-// Did we find a batcached page that hasn't expired?
-if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcache->cache['time'] + $batcache->cache['max_age'] ) {
+if ( isset( $batcache->cache['time'] ) && // We have cache
+     ! $batcache->genlock &&            // We have not obtained cache regeneration lock
+     (
+	     time() < $batcache->cache['time'] + $batcache->cache['max_age'] || // Batcached page that hasn't expired ||
+	     ( $batcache->do && $batcache->use_stale )                          // Regenerating it in another request and can use stale cache
+     )
+) {
 	// Issue redirect if cached and enabled
 	if ( $batcache->cache['redirect_status'] && $batcache->cache['redirect_location'] && $batcache->cache_redirects ) {
 		$status = $batcache->cache['redirect_status'];
@@ -604,7 +619,7 @@ if ( isset($batcache->cache['time']) && ! $batcache->genlock && time() < $batcac
 }
 
 // Didn't meet the minimum condition?
-if ( !$batcache->do && !$batcache->genlock )
+if ( ! $batcache->do || ! $batcache->genlock )
 	return;
 
 $wp_filter['status_header'][10]['batcache'] = array( 'function' => array(&$batcache, 'status_header'), 'accepted_args' => 2 );
