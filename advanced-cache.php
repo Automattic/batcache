@@ -53,7 +53,7 @@ class batcache {
 
 	var $vary    = array(); // Array of functions for create_function. The return value is added to $unique above.
 
-	var $headers = array( 'Vary' => 'Cookie' ); // Add headers here as name=>value or name=>array(values). These will be sent with every response from the cache.
+	var $headers = array(); // Add headers here as name=>value or name=>array(values). These will be sent with every response from the cache.
 
 	var $cache_redirects = false; // Set true to enable redirect caching.
 	var $redirect_status = false; // This is set to the response code during a redirect.
@@ -65,6 +65,8 @@ class batcache {
 	var $debug   = true; // Set false to hide the batcache info <!-- comment -->
 
 	var $cache_control = true; // Set false to disable Last-Modified and Cache-Control headers
+
+	var $vary_cookie_header = true; // Set false to disable Vary Cookie headers
 
 	var $cancel = false; // Change this to cancel the output buffer. Use batcache_cancel();
 
@@ -391,6 +393,7 @@ if ( $batcache->max_age < 1 )
 if ( ! method_exists( $GLOBALS['wp_object_cache'], 'incr' ) )
 	$batcache->times = 0;
 
+
 // Things that define a unique page.
 if ( isset( $_SERVER['QUERY_STRING'] ) )
 	parse_str($_SERVER['QUERY_STRING'], $batcache->query);
@@ -507,6 +510,11 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 	if ( $batcache->cache_control && !isset($batcache->cache['headers']['Last-Modified'][0]) ) {
 		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $batcache->cache['time'] ) . ' GMT', true );
 		header('Cache-Control: max-age=' . ($batcache->cache['max_age'] - time() + $batcache->cache['time']) . ', must-revalidate', true);
+	}
+
+	// Necessary to prevent clients using cached version after login cookies set. 
+	if ( $batcache->vary_cookie_header ){
+		header('Vary: Cookie', false);
 	}
 
 	// Add some debug info just before </head>
