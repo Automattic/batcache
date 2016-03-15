@@ -385,6 +385,11 @@ if ( include_once( 'plugins/searchterm-highlighter.php') && referrer_has_search_
 	return;
 */
 
+// Necessary to prevent clients using cached version after login cookies set. 
+if ( $batcache->vary_cookie_header ){
+	header('Vary: Cookie', false);
+}
+
 // Disabled
 if ( $batcache->max_age < 1 )
 	return;
@@ -512,10 +517,6 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 		header('Cache-Control: max-age=' . ($batcache->cache['max_age'] - time() + $batcache->cache['time']) . ', must-revalidate', true);
 	}
 
-	// Necessary to prevent clients using cached version after login cookies set. 
-	if ( $batcache->vary_cookie_header ){
-		header('Vary: Cookie', false);
-	}
 
 	// Add some debug info just before </head>
 	if ( $batcache->debug ) {
