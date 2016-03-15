@@ -53,7 +53,7 @@ class batcache {
 
 	var $vary    = array(); // Array of functions for create_function. The return value is added to $unique above.
 
-	var $headers = array(); // Add headers here as name=>value or name=>array(values). These will be sent with every response from the cache.
+	var $headers = array( 'Vary' => 'Cookie' ); // Add headers here as name=>value or name=>array(values). These will be sent with every response from the cache.
 
 	var $cache_redirects = false; // Set true to enable redirect caching.
 	var $redirect_status = false; // This is set to the response code during a redirect.
@@ -390,9 +390,6 @@ if ( $batcache->max_age < 1 )
 // Make sure we can increment. If not, turn off the traffic sensor.
 if ( ! method_exists( $GLOBALS['wp_object_cache'], 'incr' ) )
 	$batcache->times = 0;
-
-// Necessary to prevent clients using cached version after login cookies set. If this is a problem, comment it out and remove all Last-Modified headers.
-header('Vary: Cookie', false);
 
 // Things that define a unique page.
 if ( isset( $_SERVER['QUERY_STRING'] ) )
