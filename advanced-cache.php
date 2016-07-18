@@ -74,7 +74,7 @@ class batcache {
 	var $genlock = false;
 	var $do = false;
 
-	function batcache( $settings ) {
+	function __construct( $settings ) {
 		if ( is_array( $settings ) ) foreach ( $settings as $k => $v )
 			$this->$k = $v;
 	}
@@ -543,4 +543,3 @@ $wp_filter['wp_redirect_status'][10]['batcache'] = array( 'function' => array(&$
 ob_start(array(&$batcache, 'ob'));
 
 // It is safer to omit the final PHP closing tag.
-
