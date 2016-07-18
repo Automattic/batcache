@@ -338,7 +338,7 @@ if ( strstr( $_SERVER['SCRIPT_FILENAME'], 'wp-includes/js' ) )
 	return;
 
 // Never batcache a POST request.
-if ( ! empty( $GLOBALS['HTTP_RAW_POST_DATA'] ) || ! empty( $_POST ) ||
+if ( ! empty( file_get_contents("php://input") ) || ! empty( $_POST ) ||
 	( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'] ) )
 {
 	return;
