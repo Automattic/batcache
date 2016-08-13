@@ -536,9 +536,8 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 // Didn't meet the minimum condition?
 if ( ! $batcache->do || ! $batcache->genlock )
 	return;
-
-$wp_filter['status_header'][10]['batcache'] = array( 'function' => array(&$batcache, 'status_header'), 'accepted_args' => 2 );
-$wp_filter['wp_redirect_status'][10]['batcache'] = array( 'function' => array(&$batcache, 'redirect_status'), 'accepted_args' => 2 );
+add_filter( 'status_header', array( &$batcache, 'status_header' ), 10, 2 );
+add_filter( 'wp_redirect_status', array( &$batcache, 'redirect_status' ), 10, 2 );
 
 ob_start(array(&$batcache, 'ob'));
 
