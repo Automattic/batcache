@@ -74,7 +74,7 @@ class batcache {
 	var $genlock = false;
 	var $do = false;
 
-	function batcache( $settings ) {
+	function __construct( $settings ) {
 		if ( is_array( $settings ) ) foreach ( $settings as $k => $v )
 			$this->$k = $v;
 	}
@@ -338,7 +338,7 @@ if ( strstr( $_SERVER['SCRIPT_FILENAME'], 'wp-includes/js' ) )
 	return;
 
 // Never batcache a POST request.
-if ( ! empty( $GLOBALS['HTTP_RAW_POST_DATA'] ) || ! empty( $_POST ) ||
+if ( ! empty( file_get_contents("php://input") ) || ! empty( $_POST ) ||
 	( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'] ) )
 {
 	return;
@@ -543,4 +543,3 @@ $wp_filter['wp_redirect_status'][10]['batcache'] = array( 'function' => array(&$
 ob_start(array(&$batcache, 'ob'));
 
 // It is safer to omit the final PHP closing tag.
-
