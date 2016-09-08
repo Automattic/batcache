@@ -537,8 +537,16 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 if ( ! $batcache->do || ! $batcache->genlock )
 	return;
 
-$wp_filter['status_header'][10]['batcache'] = array( 'function' => array(&$batcache, 'status_header'), 'accepted_args' => 2 );
-$wp_filter['wp_redirect_status'][10]['batcache'] = array( 'function' => array(&$batcache, 'redirect_status'), 'accepted_args' => 2 );
+
+if ( ! isset( $wp_filter['status_header'] ) ) {
+    $wp_filter['status_header'] = new WP_Hook();
+}
+$wp_filter['status_header']->callbacks[10]['batcache'] = array( 'function' => array(&$batcache, 'status_header'), 'accepted_args' => 2 );
+
+if ( ! isset( $wp_filter['wp_redirect_status'] ) ) {
+    $wp_filter['wp_redirect_status'] = new WP_Hook();
+}
+$wp_filter['wp_redirect_status']->callbacks[10]['batcache'] = array( 'function' => array(&$batcache, 'redirect_status'), 'accepted_args' => 2 );
 
 ob_start(array(&$batcache, 'ob'));
 
