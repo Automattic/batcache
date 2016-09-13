@@ -537,8 +537,15 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 if ( ! $batcache->do || ! $batcache->genlock )
 	return;
 
-$wp_filter['status_header'][10]['batcache'] = array( 'function' => array(&$batcache, 'status_header'), 'accepted_args' => 2 );
-$wp_filter['wp_redirect_status'][10]['batcache'] = array( 'function' => array(&$batcache, 'redirect_status'), 'accepted_args' => 2 );
+//WordPress 4.7 changes how filters are hooked. Since WordPress 4.6 add_filter can be used in advanced-cache.php. Previous behaviour is kept for backwards compatability with WP < 4.6
+if ( function_exists( 'add_filter' ) ) {
+	add_filter( 'status_header', array( &$batcache, 'status_header' ), 10, 2 );
+	add_filter( 'wp_redirect_status', array( &$batcache, 'redirect_status' ), 10, 2 );
+} else {
+	$wp_filter['status_header'][10]['batcache'] = array( 'function' => array(&$batcache, 'status_header'), 'accepted_args' => 2 );
+	$wp_filter['wp_redirect_status'][10]['batcache'] = array( 'function' => array(&$batcache, 'redirect_status'), 'accepted_args' => 2 );
+}
+
 
 ob_start(array(&$batcache, 'ob'));
 
