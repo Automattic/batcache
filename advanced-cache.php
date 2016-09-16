@@ -456,7 +456,7 @@ if ( is_array( $_COOKIE) && ! empty( $_COOKIE ) ) {
 	}
 }
 
-if ( ! include_once( WP_CONTENT_DIR . '/object-cache.php' ) ) {
+if ( ! function_exists( 'wp_cache_init' )  && ! include_once( WP_CONTENT_DIR . '/object-cache.php' ) ) {
 
 	if ( $batcache->add_hit_status_header ) {
 		header( 'X-Batcache: DOWN' );
