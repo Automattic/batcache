@@ -467,6 +467,7 @@ if ( ! function_exists( 'wp_cache_init' )  && ! include_once( WP_CONTENT_DIR . '
 
 wp_cache_init(); // Note: wp-settings.php calls wp_cache_init() which clobbers the object made here.
 
+global $wp_object_cache;
 if ( ! is_object( $wp_object_cache ) ) {
 
 	if ( $batcache->add_hit_status_header ) {
