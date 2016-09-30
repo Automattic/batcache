@@ -560,10 +560,6 @@ if ( isset($batcache->cache['version']) && $batcache->cache['version'] < $batcac
 	}
 }
 
-// Obtain cache generation lock
-if ( $batcache->do )
-	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
-
 // Temporary: remove after 2010-11-12. I added max_age to the cache. This upgrades older caches on the fly.
 if ( !isset($batcache->cache['max_age']) )
 	$batcache->cache['max_age'] = $batcache->max_age;
@@ -666,6 +662,11 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 
 	// Have you ever heard a death rattle before?
 	die($batcache->cache['output']);
+}
+
+// Obtain cache generation lock
+if ( $batcache->do ) {
+	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
 }
 
 // Didn't meet the minimum condition?
