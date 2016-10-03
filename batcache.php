@@ -15,18 +15,17 @@ if ( ! isset( $batcache ) || ! is_object($batcache) || ! method_exists( $wp_obje
 $batcache->configure_groups();
 
 // Regen home and permalink on posts and pages
-add_action('clean_post_cache', 'batcache_post');
+add_action('clean_post_cache', 'batcache_post', 10, 2);
 
 // Regen permalink on comments (TODO)
 //add_action('comment_post',          'batcache_comment');
 //add_action('wp_set_comment_status', 'batcache_comment');
 //add_action('edit_comment',          'batcache_comment');
 
-function batcache_post($post_id) {
+function batcache_post($post_id, $post = null) {
 	global $batcache;
 
-	$post = get_post($post_id);
-	if ( $post->post_type == 'revision' || ! in_array( get_post_status($post_id), array( 'publish', 'trash' ) ) )
+	if ( ! $post || $post->post_type == 'revision' || ! in_array( get_post_status($post_id), array( 'publish', 'trash' ) ) )
 		return;
 
 	$home = trailingslashit( get_option('home') );
