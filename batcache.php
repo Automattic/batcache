@@ -25,6 +25,11 @@ add_action('clean_post_cache', 'batcache_post', 10, 2);
 function batcache_post($post_id, $post = null) {
 	global $batcache;
 
+	// Get the post for backwards compatibility with earlier versions of WordPress
+	if ( ! $post ) {
+		$post = get_post( $post_id );	
+	}
+	
 	if ( ! $post || $post->post_type == 'revision' || ! in_array( get_post_status($post_id), array( 'publish', 'trash' ) ) )
 		return;
 
