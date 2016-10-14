@@ -672,6 +672,7 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 if ( ! $batcache->do || ! $batcache->genlock )
 	return;
 
+global $wp_filter;
 $wp_filter['status_header'][10]['batcache'] = array( 'function' => array(&$batcache, 'status_header'), 'accepted_args' => 2 );
 $wp_filter['wp_redirect_status'][10]['batcache'] = array( 'function' => array(&$batcache, 'redirect_status'), 'accepted_args' => 2 );
 
