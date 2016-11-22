@@ -546,7 +546,7 @@ if ( function_exists( 'add_filter' ) ) {
 	$wp_filter['wp_redirect_status'][10]['batcache'] = array( 'function' => array(&$batcache, 'redirect_status'), 'accepted_args' => 2 );
 }
 
-
 ob_start(array(&$batcache, 'ob'));
 
 // It is safer to omit the final PHP closing tag.
+
