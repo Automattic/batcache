@@ -517,7 +517,7 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 
 	$batcache->do_headers( $batcache->headers, $batcache->cache['headers'] );
 
-	if ( $three04 ) {
+	if ( isset($three04) && $three04 === true ) {
 		header("HTTP/1.1 304 Not Modified", true, 304);
 		die;
 	}
