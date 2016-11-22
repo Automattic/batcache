@@ -439,6 +439,11 @@ if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $bat
 			$batcache->do = false;
 		}
 	}
+	else
+	{
+		//Don't cache if we found item in cache
+		$batcache->do = false;
+	}
 }
 
 // Obtain cache generation lock
