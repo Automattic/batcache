@@ -62,6 +62,8 @@ class batcache {
 	var $use_stale        = true; // Is it ok to return stale cached response when updating the cache?
 	var $uncached_headers = array('transfer-encoding'); // These headers will never be cached. Apply strtolower.
 
+	var $uncached_files = array(); // Script filenames that should never be cached.
+
 	var $debug   = true; // Set false to hide the batcache info <!-- comment -->
 
 	var $cache_control = true; // Set false to disable Last-Modified and Cache-Control headers
@@ -326,11 +328,11 @@ if ( ! defined( 'WP_CONTENT_DIR' ) )
 // Never batcache interactive scripts or API endpoints.
 if ( in_array(
 		basename( $_SERVER['SCRIPT_FILENAME'] ),
-		array(
+		array_merge( array(
 			'wp-app.php',
 			'xmlrpc.php',
 			'wp-cron.php',
-		) ) )
+		), (array) $batcache->uncached_files ) ) );
 	return;
 
 // Never batcache WP javascript generators
