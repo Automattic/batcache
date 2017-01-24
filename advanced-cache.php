@@ -571,10 +571,6 @@ if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $bat
 	}
 }
 
-// Obtain cache generation lock
-if ( $batcache->do )
-	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
-
 if ( isset( $batcache->cache['time'] ) && // We have cache
 	! $batcache->genlock &&            // We have not obtained cache regeneration lock
 	(
