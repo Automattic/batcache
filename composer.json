@@ -1,0 +1,14 @@
+{
+  "name"       : "humanmade/batcache",
+  "description": "A memcached HTML page cache for WordPress.",
+  "homepage"   : "https://github.com/humanmade/batcache",
+  "type"       : "wordpress-muplugin",
+  "license"    : "GPL-2.0+",
+  "support"    : {
+    "issues": "https://github.com/humanmade/batcache/issues",
+    "source": "https://github.com/humanmade/batcache"
+  },
+  "require"    : {
+    "composer/installers": "~1.0"
+  }
+}
