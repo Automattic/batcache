@@ -393,8 +393,12 @@ if ( ! method_exists( $GLOBALS['wp_object_cache'], 'incr' ) )
 header('Vary: Cookie', false);
 
 // Things that define a unique page.
-if ( isset( $_SERVER['QUERY_STRING'] ) )
+if ( isset( $_SERVER['QUERY_STRING'] ) ) {
 	parse_str($_SERVER['QUERY_STRING'], $batcache->query);
+
+	// Normalize query paramaters for better cache hits.
+	ksort( $batcache->query );
+}
 
 $batcache->keys = array(
 	'host' => $_SERVER['HTTP_HOST'],
