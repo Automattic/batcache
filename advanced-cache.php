@@ -75,6 +75,7 @@ class batcache {
 	var $query = '';
 	var $genlock = false;
 	var $do = false;
+	var $status_header = null;
 
 	function __construct( $settings ) {
 		if ( is_array( $settings ) ) foreach ( $settings as $k => $v )
