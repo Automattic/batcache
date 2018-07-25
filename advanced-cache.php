@@ -552,7 +552,7 @@ $batcache->cache = wp_cache_get($batcache->key, $batcache->group);
 if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $batcache->url_version ) {
 	// Always refresh the cache if a newer version is available.
 	$batcache->do = true;
-} else if ( $batcache->seconds < 1 || $batcache->times < 2 ) {
+} else if ( $batcache->seconds < 1 || $batcache->times < 1 ) {
 	// Are we only caching frequently-requested pages?
 	$batcache->do = true;
 } else {
@@ -570,6 +570,11 @@ if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $bat
 			$batcache->do = false;
 		}
 	}
+}
+
+// Obtain cache generation lock
+if ( $batcache->do ) {
+	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
 }
 
 if ( isset( $batcache->cache['time'] ) && // We have cache
@@ -669,11 +674,6 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 
 	// Have you ever heard a death rattle before?
 	die($batcache->cache['output']);
-}
-
-// Obtain cache generation lock
-if ( $batcache->do ) {
-	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
 }
 
 // Didn't meet the minimum condition?
