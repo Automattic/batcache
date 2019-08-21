@@ -642,8 +642,10 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 
 	// Use the batcache save time for Last-Modified so we can issue "304 Not Modified" but don't clobber a cached Last-Modified header.
 	if ( $batcache->cache_control && !isset($batcache->cache['headers']['Last-Modified'][0]) ) {
+		$max_age = ( $batcache->cache['max_age'] - time() + $batcache->cache['time'] );
+		$max_age = ( $max_age >= 0 ) ? $max_age : 0;
 		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $batcache->cache['time'] ) . ' GMT', true );
-		header('Cache-Control: max-age=' . ($batcache->cache['max_age'] - time() + $batcache->cache['time']) . ', must-revalidate', true);
+		header( 'Cache-Control: max-age=' . $max_age . ', must-revalidate', true );
 	}
 
 	// Add some debug info just before </head>
