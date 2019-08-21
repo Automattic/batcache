@@ -42,6 +42,13 @@ class batcache {
 	// This is the base configuration. You can edit these variables or move them into your wp-config.php file.
 	var $max_age =  300; // Expire batcache items aged this many seconds (zero to disable batcache)
 
+	/*
+	 * Used when when an object has expired but hasn't been regenerated. This
+	 * is to relieve load on the origin when stale content is taking a while to
+	 * regenerate.
+	 */
+	var $max_age_stale = 10;
+
 	var $remote  =    0; // Zero disables sending buffers to remote datacenters (req/sec is never sent)
 
 	var $times   =    1; // Only batcache a page after it is accessed this many times... (two or more)
@@ -643,7 +650,7 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 	// Use the batcache save time for Last-Modified so we can issue "304 Not Modified" but don't clobber a cached Last-Modified header.
 	if ( $batcache->cache_control && !isset($batcache->cache['headers']['Last-Modified'][0]) ) {
 		$max_age = ( $batcache->cache['max_age'] - time() + $batcache->cache['time'] );
-		$max_age = ( $max_age >= 0 ) ? $max_age : 0;
+		$max_age = ( $max_age >= $batcache->max_age_stale ) ? $max_age : $batcache->max_age_stale;
 		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $batcache->cache['time'] ) . ' GMT', true );
 		header( 'Cache-Control: max-age=' . $max_age . ', must-revalidate', true );
 	}
