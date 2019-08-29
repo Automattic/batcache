@@ -3,7 +3,7 @@ Contributors: automattic, andy, orensol, markjaquith, vnsavage, batmoo, yoavf
 Tags: cache, memcache, memcached, speed, performance, load, server
 Requires at least: 3.2
 Tested up to: 3.5
-Stable tag: 1.2
+Stable tag: 1.3
 
 Batcache uses Memcached to store and serve rendered pages.
 
