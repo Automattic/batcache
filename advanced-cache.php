@@ -541,6 +541,10 @@ $batcache->keys = array(
 	'extra' => $batcache->unique
 );
 
+if ( ! empty( $_SERVER['HTTP_ORIGIN'] ) ) {
+	$batcache->keys['origin'] = $_SERVER['HTTP_ORIGIN'];
+}
+
 if ( $batcache->is_ssl() )
 	$batcache->keys['ssl'] = true;
 
