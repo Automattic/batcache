@@ -3,7 +3,7 @@ Contributors: automattic, andy, orensol, markjaquith, vnsavage, batmoo, yoavf
 Tags: cache, memcache, memcached, speed, performance, load, server
 Requires at least: 3.2
 Tested up to: 3.5
-Stable tag: 1.3
+Stable tag: 1.3.1
 
 Batcache uses Memcached to store and serve rendered pages.
 
@@ -63,7 +63,10 @@ Batcache was named "supercache" when it was written. (It's still called that on 
 == Changelog ==
 
 = trunk =
+
+= 1.3.1 =
 * Add REQUEST_METHOD to the cache keys. Prevents GET requests receiving bodyless HEAD responses. This change invalidates the entire cache at upgrade time.
+* Add ORIGIN into the cache keys to create cache variation for different origin requests. 
 
 = 1.1 =
 * Many bugfixes and updates from trunk

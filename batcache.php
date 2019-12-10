@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/batcache/
 Description: This optional plugin improves Batcache.
 Author: Andy Skelton
 Author URI: http://andyskelton.com/
-Version: 1.2
+Version: 1.3.1
 */
 
 // Do not load if our advanced-cache.php isn't loaded
