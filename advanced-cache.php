@@ -69,7 +69,9 @@ class batcache {
 	var $cancel = false; // Change this to cancel the output buffer. Use batcache_cancel();
 
 	var $noskip_cookies = array( 'wordpress_test_cookie' ); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
+	var $cacheable_origin_hostnames = array(); // A whitelist of HTTP origin `<host>:<port>` (or just `<host>`) names that are allowed as cache variations.
 
+	var $origin = null; // Current Origin header.
 	var $query = '';
 	var $genlock = false;
 	var $do = false;
@@ -89,6 +91,24 @@ class batcache {
 			return true;
 		}
 		return false;
+	}
+
+	function is_cacheable_origin( $origin ) {
+		$parsed_origin = parse_url( $origin );
+
+		if ( false === $parsed_origin ) {
+			return false;
+		}
+
+		$origin_host = ! empty( $parsed_origin['host'] ) ? strtolower( $parsed_origin['host'] ) : null;
+		$origin_scheme = ! empty( $parsed_origin['scheme'] ) ? strtolower( $parsed_origin['scheme'] ) : null;
+		$origin_port = ! empty( $parsed_origin['port'] ) ? $parsed_origin['port'] : null;
+
+		return $origin
+			&& $origin_host
+			&& ( 'http' === $origin_scheme || 'https' === $origin_scheme )
+			&& ( null === $origin_port || 80 === $origin_port || 443 === $origin_port )
+			&& in_array( $origin_host, $this->cacheable_origin_hostnames, true );
 	}
 
 	function status_header( $status_header, $status_code ) {
@@ -352,6 +372,17 @@ if ( is_array( $_COOKIE) && ! empty( $_COOKIE ) ) {
 	}
 }
 
+// Never batcache a response for a request with an Origin request header.
+// *Unless* that Origin header is in the configured whitelist of allowed origins with restricted schemes and ports.
+if ( isset( $_SERVER['HTTP_ORIGIN'] ) ) {
+	if ( ! $batcache->is_cacheable_origin( $_SERVER['HTTP_ORIGIN'] ) ) {
+		batcache_stats( 'batcache', 'origin_skip' );
+		return;
+	}
+
+	$batcache->origin = $_SERVER['HTTP_ORIGIN'];
+}
+
 if ( ! include_once( WP_CONTENT_DIR . '/object-cache.php' ) )
 	return;
 
@@ -407,6 +438,9 @@ $batcache->keys = array(
 	'query' => $batcache->query,
 	'extra' => $batcache->unique
 );
+if ( isset( $batcache->origin ) ) {
+	$batcache->keys['origin'] = $batcache->origin;
+}
 
 if ( $batcache->is_ssl() )
 	$batcache->keys['ssl'] = true;
@@ -551,4 +585,3 @@ if ( function_exists( 'add_filter' ) ) {
 ob_start(array(&$batcache, 'ob'));
 
 // It is safer to omit the final PHP closing tag.
-
