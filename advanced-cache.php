@@ -364,6 +364,7 @@ if ((isset($_SERVER['REQUEST_METHOD']) && !in_array($_SERVER['REQUEST_METHOD'], 
 
 // Never batcache a request with X-WP-Nonce header.
 if ( ! empty( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
+	batcache_stats( 'batcache', 'x_wp_nonce_skip' );
 	return;
 }
 
