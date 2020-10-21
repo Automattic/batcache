@@ -73,6 +73,7 @@ class batcache {
 
 	var $origin = null; // Current Origin header.
 	var $query = '';
+	var $ignored_query_args = array();
 	var $genlock = false;
 	var $do = false;
 
@@ -334,6 +335,21 @@ HTML;
 		}
 		$this->cache['output'] .= "\n$debug_html";
 	}
+
+	function set_query( $query_string ) {
+		parse_str( $query_string, $this->query );
+
+		foreach ( $this->ignored_query_args as $arg ) {
+			unset( $this->query[ $arg ] );
+		}
+
+		if ( empty( $this->query ) ) {
+			$this->query = ''; // Because this is the default $query value.
+		} else {
+			// Normalize query parameters for better cache hits.
+			ksort( $this->query );
+		}
+	}
 }
 
 global $batcache;
@@ -425,10 +441,7 @@ header('Vary: Cookie', false);
 
 // Things that define a unique page.
 if ( isset( $_SERVER['QUERY_STRING'] ) ) {
-	parse_str($_SERVER['QUERY_STRING'], $batcache->query);
-
-	// Normalize query paramaters for better cache hits.
-	ksort( $batcache->query );
+	$batcache->set_query( $_SERVER['QUERY_STRING'] );
 }
 
 $batcache->keys = array(
