@@ -455,12 +455,13 @@ $batcache->generate_keys();
 
 // Get the batcache
 $batcache->cache = wp_cache_get($batcache->key, $batcache->group);
+$has_expired = ! empty( $batcache->cache['time'] ) && time() > $batcache->cache['time'] + $batcache->cache['max_age'];
 
 if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $batcache->url_version ) {
 	// Always refresh the cache if a newer version is available.
 	$batcache->do = true;
-} else if ( $batcache->seconds < 1 || $batcache->times < 2 ) {
-	// Are we only caching frequently-requested pages?
+} else if ( $has_expired && ( $batcache->seconds < 1 || $batcache->times < 2 ) ) {
+	// Cache has expired and we're caching all requests.
 	$batcache->do = true;
 } else {
 	// No batcache item found, or ready to sample traffic again at the end of the batcache life?
@@ -483,10 +484,11 @@ if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $bat
 if ( $batcache->do )
 	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
 
-if ( isset( $batcache->cache['time'] ) && // We have cache
+if (
+	isset( $batcache->cache['time'] ) && // We have cache
 	! $batcache->genlock &&            // We have not obtained cache regeneration lock
 	(
-		time() < $batcache->cache['time'] + $batcache->cache['max_age'] || // Batcached page that hasn't expired ||
+		! $has_expired || // Batcached page that hasn't expired
 		( $batcache->do && $batcache->use_stale )                          // Regenerating it in another request and can use stale cache
 	)
 ) {
