@@ -455,14 +455,15 @@ $batcache->generate_keys();
 
 // Get the batcache
 $batcache->cache = wp_cache_get($batcache->key, $batcache->group);
-$has_expired = ! empty( $batcache->cache['time'] ) && time() > $batcache->cache['time'] + $batcache->cache['max_age'];
+$is_cached = ! empty( $batcache->cache );
+$has_expired = $is_cached && time() > $batcache->cache['time'] + $batcache->cache['max_age'];
 
 if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $batcache->url_version ) {
 	// Always refresh the cache if a newer version is available.
 	$batcache->do = true;
-} else if ( $has_expired && ( $batcache->seconds < 1 || $batcache->times < 2 ) ) {
-	// Cache has expired and we're caching all requests.
-	$batcache->do = true;
+} else if ( $batcache->seconds < 1 || $batcache->times < 2 ) {
+	// Cache is empty or has expired and we're caching all requests.
+	$batcache->do = ! $is_cached || $has_expired;
 } else {
 	// No batcache item found, or ready to sample traffic again at the end of the batcache life?
 	if ( !is_array($batcache->cache) || time() >= $batcache->cache['time'] + $batcache->max_age - $batcache->seconds ) {
