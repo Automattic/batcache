@@ -455,7 +455,7 @@ $batcache->generate_keys();
 
 // Get the batcache
 $batcache->cache = wp_cache_get($batcache->key, $batcache->group);
-$is_cached = ! empty( $batcache->cache );
+$is_cached = ! is_array( $batcache->cache );
 $has_expired = $is_cached && time() > $batcache->cache['time'] + $batcache->cache['max_age'];
 
 if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $batcache->url_version ) {
