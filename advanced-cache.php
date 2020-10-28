@@ -72,7 +72,7 @@ class batcache {
 	var $cacheable_origin_hostnames = array(); // A whitelist of HTTP origin `<host>:<port>` (or just `<host>`) names that are allowed as cache variations.
 
 	var $origin = null; // Current Origin header.
-	var $query = '';
+	var $query = array();
 	var $ignored_query_args = array();
 	var $genlock = false;
 	var $do = false;
@@ -343,12 +343,8 @@ HTML;
 			unset( $this->query[ $arg ] );
 		}
 
-		if ( empty( $this->query ) ) {
-			$this->query = ''; // Because this is the default $query value.
-		} else {
-			// Normalize query parameters for better cache hits.
-			ksort( $this->query );
-		}
+		// Normalize query parameters for better cache hits.
+		ksort( $this->query );
 	}
 }
 
