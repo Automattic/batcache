@@ -487,7 +487,7 @@ if ( $batcache->do )
 
 if (
 	$is_cached && // We have cache
-	! $batcache->genlock &&  // We have not obtained cache regeneration lock
+	! $batcache->genlock && // We have not obtained cache regeneration lock
 	(
 		! $has_expired || // Batcached page that hasn't expired
 		( $batcache->do && $batcache->use_stale ) // Regenerating it in another request and can use stale cache
