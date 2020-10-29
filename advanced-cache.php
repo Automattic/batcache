@@ -455,7 +455,7 @@ $batcache->generate_keys();
 
 // Get the batcache
 $batcache->cache = wp_cache_get($batcache->key, $batcache->group);
-$is_cached = is_array( $batcache->cache );
+$is_cached = is_array( $batcache->cache ) && isset( $batcache->cache['time'] );
 $has_expired = $is_cached && time() > $batcache->cache['time'] + $batcache->cache['max_age'];
 
 if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $batcache->url_version ) {
@@ -486,11 +486,11 @@ if ( $batcache->do )
 	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
 
 if (
-	isset( $batcache->cache['time'] ) && // We have cache
-	! $batcache->genlock &&            // We have not obtained cache regeneration lock
+	$is_cached && // We have cache
+	! $batcache->genlock &&  // We have not obtained cache regeneration lock
 	(
 		! $has_expired || // Batcached page that hasn't expired
-		( $batcache->do && $batcache->use_stale )                          // Regenerating it in another request and can use stale cache
+		( $batcache->do && $batcache->use_stale ) // Regenerating it in another request and can use stale cache
 	)
 ) {
 	// Issue redirect if cached and enabled
