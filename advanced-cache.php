@@ -464,16 +464,18 @@ $batcache->generate_keys();
 
 // Get the batcache
 $batcache->cache = wp_cache_get($batcache->key, $batcache->group);
+$is_cached = is_array( $batcache->cache ) && isset( $batcache->cache['time'] );
+$has_expired = $is_cached && time() > $batcache->cache['time'] + $batcache->cache['max_age'];
 
 if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $batcache->url_version ) {
 	// Always refresh the cache if a newer version is available.
 	$batcache->do = true;
 } else if ( $batcache->seconds < 1 || $batcache->times < 2 ) {
-	// Are we only caching frequently-requested pages?
-	$batcache->do = true;
+	// Cache is empty or has expired and we're caching all requests.
+	$batcache->do = ! $is_cached || $has_expired;
 } else {
 	// No batcache item found, or ready to sample traffic again at the end of the batcache life?
-	if ( !is_array($batcache->cache) || time() >= $batcache->cache['time'] + $batcache->max_age - $batcache->seconds ) {
+	if ( ! $is_cached || time() >= $batcache->cache['time'] + $batcache->max_age - $batcache->seconds ) {
 		wp_cache_add($batcache->req_key, 0, $batcache->group);
 		$batcache->requests = wp_cache_incr($batcache->req_key, 1, $batcache->group);
 
@@ -492,11 +494,12 @@ if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $bat
 if ( $batcache->do )
 	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
 
-if ( isset( $batcache->cache['time'] ) && // We have cache
-	! $batcache->genlock &&            // We have not obtained cache regeneration lock
+if (
+	$is_cached && // We have cache
+	! $batcache->genlock && // We have not obtained cache regeneration lock
 	(
-		time() < $batcache->cache['time'] + $batcache->cache['max_age'] || // Batcached page that hasn't expired ||
-		( $batcache->do && $batcache->use_stale )                          // Regenerating it in another request and can use stale cache
+		! $has_expired || // Batcached page that hasn't expired
+		( $batcache->do && $batcache->use_stale ) // Regenerating it in another request and can use stale cache
 	)
 ) {
 	// Issue redirect if cached and enabled
