@@ -531,7 +531,6 @@ header('Vary: Cookie, Origin', false);
 if ( isset( $_SERVER['QUERY_STRING'] ) ) {
 	parse_str($_SERVER['QUERY_STRING'], $batcache->query);
 	$batcache->query = array_diff_key( $batcache->query, array_flip( $batcache->ignored_query_string_params ) );
-	$batcache->query = array_map( 'urldecode', $batcache->query );
 	ksort( $batcache->query );
 }
 
