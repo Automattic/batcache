@@ -485,9 +485,7 @@ if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $bat
 		wp_cache_add($batcache->req_key, 0, $batcache->group);
 		$batcache->requests = wp_cache_incr($batcache->req_key, 1, $batcache->group);
 
-		if ( $batcache->requests >= $batcache->times &&
-			time() >= $batcache->cache['time'] + $batcache->cache['max_age']
-		) {
+		if ( ( !is_array($batcache->cache) && $batcache->requests >= $batcache->times ) || ( is_array($batcache->cache) && $batcache->requests >= $batcache->times && time() >= $batcache->cache['time'] + $batcache->cache['max_age']	) ) {
 			wp_cache_delete( $batcache->req_key, $batcache->group );
 			$batcache->do = true;
 		} else {
