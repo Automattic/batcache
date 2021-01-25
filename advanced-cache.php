@@ -486,7 +486,7 @@ if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $bat
 		$batcache->requests = wp_cache_incr($batcache->req_key, 1, $batcache->group);
 
 		if ( $batcache->requests >= $batcache->times &&
-			time() >= $batcache->cache['time'] + $batcache->cache['max_age']
+			( ! $is_cached || time() >= $batcache->cache['time'] + $batcache->cache['max_age'] )
 		) {
 			wp_cache_delete( $batcache->req_key, $batcache->group );
 			$batcache->do = true;
