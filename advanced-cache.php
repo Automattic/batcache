@@ -551,11 +551,14 @@ if ( $batcache->is_ssl() )
 
 // Recreate the permalink from the URL
 $batcache->permalink = 'http://' . $batcache->keys['host'] . $batcache->keys['path'] . ( isset($batcache->keys['query']['p']) ? "?p=" . $batcache->keys['query']['p'] : '' );
-$batcache->url_key = md5($batcache->permalink);
+$batcache->generate_keys();
+// Use the whole batcache key as the "url_key". The original version of Batcache would only track the genlock and version
+// against the current URL path, rather than the whole batcache variant. This would mean that many requests to a single path
+// (like a REST API endpoint) would all share a genlock.
+$batcache->url_key = $batcache->key;
 $batcache->configure_groups();
 $batcache->url_version = (int) wp_cache_get("{$batcache->url_key}_version", $batcache->group);
 $batcache->do_variants();
-$batcache->generate_keys();
 
 // Get the batcache
 $batcache->cache = wp_cache_get($batcache->key, $batcache->group);
@@ -690,6 +693,11 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 	die($batcache->cache['output']);
 }
 
+// If we were not able to get a genlock,
+if ( $batcache->do && ! $batcache->genlock && $batcache->add_hit_status_header ) {
+	header( 'X-Batcache: BYPASS' );
+	header( 'X-Batcache-Reason: No Genlock' );
+}
 // Didn't meet the minimum condition?
 if ( ! $batcache->do || ! $batcache->genlock )
 	return;
