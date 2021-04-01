@@ -174,7 +174,7 @@ class batcache {
 				header( 'X-Batcache: BYPASS' );
 				header( 'X-Batcache-Reason: Canceled' );
 			}
-			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+			wp_cache_delete( "{$this->key}_genlock", $this->group );
 
 			return $output;
 		}
@@ -186,7 +186,7 @@ class batcache {
 		$this->configure_groups();
 
 		if ( $this->cancel !== false ) {
-			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+			wp_cache_delete( "{$this->key}_genlock", $this->group );
 			return $output;
 		}
 
@@ -204,7 +204,7 @@ class batcache {
 				header( 'X-Batcache-Reason: No content' );
 			}
 
-			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+			wp_cache_delete( "{$this->key}_genlock", $this->group );
 			return;
 		}
 
@@ -220,7 +220,7 @@ class batcache {
 				header( 'X-Batcache-Reason: Bad status code' );
 			}
 
-			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+			wp_cache_delete( "{$this->key}_genlock", $this->group );
 			return $output;
 		}
 
@@ -262,7 +262,7 @@ class batcache {
 					header( 'X-Batcache-Reason: Set-Cookie' );
 				}
 
-				wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+				wp_cache_delete( "{$this->key}_genlock", $this->group );
 				return $output;
 			}
 
@@ -276,7 +276,7 @@ class batcache {
 		wp_cache_set($this->key, $this->cache, $this->group, $this->max_age + $this->seconds + 30);
 
 		// Unlock regeneration
-		wp_cache_delete("{$this->url_key}_genlock", $this->group);
+		wp_cache_delete("{$this->key}_genlock", $this->group);
 
 		if ( $this->cache_control ) {
 			// Don't clobber Last-Modified header if already set, e.g. by WP::send_headers()
@@ -586,7 +586,7 @@ if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $bat
 
 // Obtain cache generation lock
 if ( $batcache->do ) {
-	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
+	$batcache->genlock = wp_cache_add("{$batcache->key}_genlock", 1, $batcache->group, 10);
 }
 
 if ( isset( $batcache->cache['time'] ) && // We have cache
@@ -690,6 +690,11 @@ if ( isset( $batcache->cache['time'] ) && // We have cache
 	die($batcache->cache['output']);
 }
 
+// If we were not able to get a genlock,
+if ( $batcache->do && ! $batcache->genlock && $batcache->add_hit_status_header ) {
+	header( 'X-Batcache: BYPASS' );
+	header( 'X-Batcache-Reason: No Genlock' );
+}
 // Didn't meet the minimum condition?
 if ( ! $batcache->do || ! $batcache->genlock )
 	return;
