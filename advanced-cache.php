@@ -174,7 +174,7 @@ class batcache {
 				header( 'X-Batcache: BYPASS' );
 				header( 'X-Batcache-Reason: Canceled' );
 			}
-			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+			wp_cache_delete( "{$this->key}_genlock", $this->group );
 
 			return $output;
 		}
@@ -186,7 +186,7 @@ class batcache {
 		$this->configure_groups();
 
 		if ( $this->cancel !== false ) {
-			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+			wp_cache_delete( "{$this->key}_genlock", $this->group );
 			return $output;
 		}
 
@@ -204,7 +204,7 @@ class batcache {
 				header( 'X-Batcache-Reason: No content' );
 			}
 
-			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+			wp_cache_delete( "{$this->key}_genlock", $this->group );
 			return;
 		}
 
@@ -220,7 +220,7 @@ class batcache {
 				header( 'X-Batcache-Reason: Bad status code' );
 			}
 
-			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+			wp_cache_delete( "{$this->key}_genlock", $this->group );
 			return $output;
 		}
 
@@ -262,7 +262,7 @@ class batcache {
 					header( 'X-Batcache-Reason: Set-Cookie' );
 				}
 
-				wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+				wp_cache_delete( "{$this->key}_genlock", $this->group );
 				return $output;
 			}
 
@@ -276,7 +276,7 @@ class batcache {
 		wp_cache_set($this->key, $this->cache, $this->group, $this->max_age + $this->seconds + 30);
 
 		// Unlock regeneration
-		wp_cache_delete("{$this->url_key}_genlock", $this->group);
+		wp_cache_delete("{$this->key}_genlock", $this->group);
 
 		if ( $this->cache_control ) {
 			// Don't clobber Last-Modified header if already set, e.g. by WP::send_headers()
@@ -551,14 +551,11 @@ if ( $batcache->is_ssl() )
 
 // Recreate the permalink from the URL
 $batcache->permalink = 'http://' . $batcache->keys['host'] . $batcache->keys['path'] . ( isset($batcache->keys['query']['p']) ? "?p=" . $batcache->keys['query']['p'] : '' );
-$batcache->generate_keys();
-// Use the whole batcache key as the "url_key". The original version of Batcache would only track the genlock and version
-// against the current URL path, rather than the whole batcache variant. This would mean that many requests to a single path
-// (like a REST API endpoint) would all share a genlock.
-$batcache->url_key = $batcache->key;
+$batcache->url_key = md5($batcache->permalink);
 $batcache->configure_groups();
 $batcache->url_version = (int) wp_cache_get("{$batcache->url_key}_version", $batcache->group);
 $batcache->do_variants();
+$batcache->generate_keys();
 
 // Get the batcache
 $batcache->cache = wp_cache_get($batcache->key, $batcache->group);
@@ -589,7 +586,7 @@ if ( isset( $batcache->cache['version'] ) && $batcache->cache['version'] != $bat
 
 // Obtain cache generation lock
 if ( $batcache->do ) {
-	$batcache->genlock = wp_cache_add("{$batcache->url_key}_genlock", 1, $batcache->group, 10);
+	$batcache->genlock = wp_cache_add("{$batcache->key}_genlock", 1, $batcache->group, 10);
 }
 
 if ( isset( $batcache->cache['time'] ) && // We have cache
