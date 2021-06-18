@@ -266,9 +266,28 @@ class batcache {
 				return $output;
 			}
 
-			foreach ( (array) $values as $value )
-				if ( preg_match('/^Cache-Control:.*max-?age=(\d+)/i', "$header: $value", $matches) )
-					$this->max_age = intval($matches[1]);
+			foreach ( (array) $values as $value ) {
+				// Take the max age from the Cache-Control header if it's set.
+				// If caching redirects is enabled, we don't want to do that when the
+				// max-age is set to 0 though.
+				if ( preg_match('/^Cache-Control:.*max-?age=(\d+)/i', "$header: $value", $matches) ) {
+					$max_age = intval($matches[1]);
+					// If the max age is zero, effectively skip the cache.
+					if ( $max_age === 0 && ( ! $this->cache_redirects || ! $this->cache['redirect_location'] ) ) {
+						if ( $this->add_hit_status_header ) {
+							header( 'X-Batcache: BYPASS' );
+							header( 'X-Batcache-Reason: Max-Age-Zero' );
+						}
+						wp_cache_delete( "{$this->key}_genlock", $this->group );
+						return $output;
+					}
+					// If the max-age has been set to zero, but we are caching a redirect, use the default max age.
+					if ( $max_age === 0 && $this->cache_redirects && $this->cache['redirect_location'] ) {
+						continue;
+					}
+					$this->max_age = $max_age;
+				}
+			}
 		}
 
 		$this->cache['max_age'] = $this->max_age;
