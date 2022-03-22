@@ -40,7 +40,7 @@ Possible future features:
 
 = Memcached backend =
 
-1. Install [memcached](http://danga.com/memcached) on at least one server. Note the connection info. The default is `127.0.0.1:11211`.
+1. Install [memcached](https://memcached.org/) on at least one server. Note the connection info. The default is `127.0.0.1:11211`.
 
 1. Install the [PECL memcached extension](http://pecl.php.net/package/memcache) and [Ryan's Memcached backend 2.0](http://svn.wp-plugins.org/memcached/trunk/). Use the [1.0 branch](http://svn.wp-plugins.org/memcached/branches/1.0/) if you don't have or can't install the PECL extension.
 
