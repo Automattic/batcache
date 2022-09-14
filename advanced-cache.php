@@ -280,7 +280,7 @@ class batcache {
 		if ( is_array($dimensions) ) {
 			ksort($dimensions);
 			foreach ( $dimensions as $key => $function ) {
-				eval( '$fun = function() { $function; };' );
+				eval( '$fun = function() { ' . $function . '; };' );
 				$value = call_user_func( $fun );
 				$this->keys[$key] = $value;
 			}
