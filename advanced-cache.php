@@ -24,7 +24,7 @@ function batcache_cancel() {
 //  X_X  DO NOT use any WordPress functions except is_admin() and is_multisite(). Fatal error.
 //  X_X  DO NOT include or require files from anywhere without consulting expensive professionals first. Fatal error.
 //  X_X  DO NOT use $wpdb, $blog_id, $current_user, etc. These have not been initialized.
-//  ^_^  DO understand how create_function works. This is how your code is used: create_function('', $function);
+//  ^_^  DO understand how anonymous functions and eval work. This is how your code is used: eval( '$fun = function() { ' . $function . '; };' );
 //  ^_^  DO remember to return something. The return value determines the cache variant.
 function vary_cache_on_function($function) {
 	global $batcache;
@@ -51,7 +51,7 @@ class batcache {
 
 	var $unique  = array(); // If you conditionally serve different content, put the variable values here.
 
-	var $vary    = array(); // Array of functions for create_function. The return value is added to $unique above.
+	var $vary    = array(); // Array of functions for anonymous function eval. The return value is added to $unique above.
 
 	var $headers = array(); // Add headers here as name=>value or name=>array(values). These will be sent with every response from the cache.
 
