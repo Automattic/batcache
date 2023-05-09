@@ -95,6 +95,29 @@ class batcache {
 		return false;
 	}
 
+	function client_accepts_only_json() {
+		if ( ! isset( $_SERVER['HTTP_ACCEPT'] ) )
+			return false;
+
+		$is_json_only = false;
+
+		foreach ( explode( ',', $_SERVER['HTTP_ACCEPT'] ) as $accept_header ) {
+			if ( false !== $pos = strpos( $accept_header, ';' ) )
+				$accept_header = substr( $accept_header, 0, $pos );
+
+			$accept_header = trim( $accept_header );
+
+			if ( '/json' === substr( $accept_header, -5 ) || '+json' === substr( $accept_header, -5 ) ) {
+				$is_json_only = true;
+				continue;
+			}
+
+			return false;
+		}
+
+		return $is_json_only;
+	}
+
 	function is_cacheable_origin( $origin ) {
 		$parsed_origin = parse_url( $origin );
 
@@ -462,13 +485,9 @@ if ( isset( $batcache->origin ) ) {
 if ( $batcache->is_ssl() )
 	$batcache->keys['ssl'] = true;
 
-# If only json is acceptable, then vary on it.
 # Some plugins return html or json based on the Accept value for the same URL.
-if ( isset( $_SERVER['HTTP_ACCEPT'] ) && false === strpos( $_SERVER['HTTP_ACCEPT'], ',' ) &&
-    ( '/json' === substr( $_SERVER['HTTP_ACCEPT'], -5 ) || '+json' === substr( $_SERVER['HTTP_ACCEPT'], -5 ) ) )
-{
+if ( $batcache->client_accepts_only_json() )
 	$batcache->keys['json'] = true;
-}
 
 // Recreate the permalink from the URL
 $batcache->permalink = 'http://' . $batcache->keys['host'] . $batcache->keys['path'] . ( isset($batcache->keys['query']['p']) ? "?p=" . $batcache->keys['query']['p'] : '' );
