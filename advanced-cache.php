@@ -462,6 +462,14 @@ if ( isset( $batcache->origin ) ) {
 if ( $batcache->is_ssl() )
 	$batcache->keys['ssl'] = true;
 
+# If only json is acceptable, then vary on it.
+# Some plugins return html or json based on the Accept value for the same URL.
+if ( isset( $_SERVER['HTTP_ACCEPT'] ) && false === strpos( $_SERVER['HTTP_ACCEPT'], ',' ) &&
+    ( '/json' === substr( $_SERVER['HTTP_ACCEPT'], -5 ) || '+json' === substr( $_SERVER['HTTP_ACCEPT'], -5 ) ) )
+{
+	$batcache->keys['json'] = true;
+}
+
 // Recreate the permalink from the URL
 $batcache->permalink = 'http://' . $batcache->keys['host'] . $batcache->keys['path'] . ( isset($batcache->keys['query']['p']) ? "?p=" . $batcache->keys['query']['p'] : '' );
 $batcache->url_key = md5($batcache->permalink);
