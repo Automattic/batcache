@@ -101,13 +101,13 @@ class batcache {
 
 		$is_json_only = false;
 
-		foreach ( explode( ',', $_SERVER['HTTP_ACCEPT'] ) as $accept_header ) {
-			if ( false !== $pos = strpos( $accept_header, ';' ) )
-				$accept_header = substr( $accept_header, 0, $pos );
+		foreach ( explode( ',', $_SERVER['HTTP_ACCEPT'] ) as $mime_type ) {
+			if ( false !== $pos = strpos( $mime_type, ';' ) )
+				$mime_type = substr( $mime_type, 0, $pos );
 
-			$accept_header = trim( $accept_header );
+			$mime_type = trim( $mime_type );
 
-			if ( '/json' === substr( $accept_header, -5 ) || '+json' === substr( $accept_header, -5 ) ) {
+			if ( '/json' === substr( $mime_type, -5 ) || '+json' === substr( $mime_type, -5 ) ) {
 				$is_json_only = true;
 				continue;
 			}
