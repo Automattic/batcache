@@ -67,6 +67,8 @@ class batcache {
 
 	var $cache_control = true; // Set false to disable Last-Modified and Cache-Control headers
 
+	var $vary_cookie_header = true; // Set false to disable Vary Cookie headers
+
 	var $cancel = false; // Change this to cancel the output buffer. Use batcache_cancel();
 
 	var $noskip_cookies = array( 'wordpress_test_cookie' ); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
@@ -455,6 +457,11 @@ if ( include_once( 'plugins/searchterm-highlighter.php') && referrer_has_search_
 	return;
 */
 
+// Necessary to prevent clients using cached version after login cookies set. 
+if ( $batcache->vary_cookie_header ){
+	header('Vary: Cookie', false);
+}
+
 // Disabled
 if ( $batcache->max_age < 1 )
 	return;
@@ -463,8 +470,6 @@ if ( $batcache->max_age < 1 )
 if ( ! method_exists( $GLOBALS['wp_object_cache'], 'incr' ) )
 	$batcache->times = 0;
 
-// Necessary to prevent clients using cached version after login cookies set. If this is a problem, comment it out and remove all Last-Modified headers.
-header('Vary: Cookie', false);
 
 // Things that define a unique page.
 if ( isset( $_SERVER['QUERY_STRING'] ) ) {
@@ -598,6 +603,7 @@ if (
 		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $batcache->cache['time'] ) . ' GMT', true );
 		header('Cache-Control: max-age=' . ($batcache->cache['max_age'] - time() + $batcache->cache['time']) . ', must-revalidate', true);
 	}
+
 
 	// Add some debug info just before </head>
 	if ( $batcache->debug ) {
