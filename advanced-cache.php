@@ -69,7 +69,7 @@ class batcache {
 
 	var $cancel = false; // Change this to cancel the output buffer. Use batcache_cancel();
 
-	var $noskip_cookies = array( 'wordpress_test_cookie' ); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
+	var $noskip_cookies = array(); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
 	var $cacheable_origin_hostnames = array(); // A whitelist of HTTP origin `<host>:<port>` (or just `<host>`) names that are allowed as cache variations.
 
 	var $origin = null; // Current Origin header.
@@ -407,7 +407,7 @@ if ( ! empty( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
 // Never batcache when cookies indicate a cache-exempt visitor.
 if ( is_array( $_COOKIE) && ! empty( $_COOKIE ) ) {
 	foreach ( array_keys( $_COOKIE ) as $batcache->cookie ) {
-		if ( ! in_array( $batcache->cookie, $batcache->noskip_cookies ) && ( substr( $batcache->cookie, 0, 2 ) == 'wp' || substr( $batcache->cookie, 0, 9 ) == 'wordpress' || substr( $batcache->cookie, 0, 14 ) == 'comment_author' ) ) {
+		if ( ! in_array( $batcache->cookie, $batcache->noskip_cookies ) && ( substr( $batcache->cookie, 0, 12 ) == 'woocommerce_' || substr( $batcache->cookie, 0, 10 ) == 'wordpress_' || substr( $batcache->cookie, 0, 15 ) == 'comment_author_' ) ) {
 			batcache_stats( 'batcache', 'cookie_skip' );
 			return;
 		}
