@@ -69,7 +69,7 @@ class batcache {
 
 	var $cancel = false; // Change this to cancel the output buffer. Use batcache_cancel();
 
-	var $noskip_cookies = array(); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
+	var $noskip_cookies = array( 'wordpress_test_cookie' ); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
 	var $cacheable_origin_hostnames = array(); // A whitelist of HTTP origin `<host>:<port>` (or just `<host>`) names that are allowed as cache variations.
 
 	var $origin = null; // Current Origin header.
