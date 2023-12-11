@@ -69,6 +69,10 @@ class batcache {
 
 	var $cancel = false; // Change this to cancel the output buffer. Use batcache_cancel();
 
+	var $flush_keys = array(); // Keys from $keys used to bust the cache.
+	var $flush_group = 'batcache_flush'; // Use a separate group for storing flush keys. Needs to be global.
+	var $flush_cache_prefix = 'batcache_cache_buster'; // Cache key prefix used for batcache invalidations.
+
 	var $noskip_cookies = array( 'wordpress_test_cookie' ); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
 	var $cacheable_origin_hostnames = array(); // A whitelist of HTTP origin `<host>:<port>` (or just `<host>`) names that are allowed as cache variations.
 
@@ -370,6 +374,49 @@ HTML;
 		// Normalize query parameters for better cache hits.
 		ksort( $this->query );
 	}
+
+	function get_flush_cache_key( $key, $value ) {
+		if ( is_scalar( $value ) ) {
+			$flush_key_hash = md5( $value );
+		} else {
+			$flush_key_hash = md5( serialize( $value ) );
+		}
+
+		$flush_cache_key = sprintf( '%s_%s_%s', $this->flush_cache_prefix, $key, $flush_key_hash );
+		return $flush_cache_key;
+	}
+
+	function add_flush_keys() {
+		if ( empty( $this->flush_keys ) || empty( $this->keys ) ) {
+			return;
+		}
+
+		foreach ( $this->flush_keys as $key ) {
+			if ( isset( $this->keys[ $key ] ) ) {
+				$flush_cache_key = $this->get_flush_cache_key( $key, $this->keys[ $key ] );
+				$flush_timestamp = wp_cache_get( $flush_cache_key, $this->flush_group );
+
+				if ( false === $flush_timestamp ) {
+					$flush_timestamp = time();
+					wp_cache_set( $flush_cache_key, $flush_timestamp, $this->flush_group );
+				}
+
+				$flush_key = sprintf( '%s_flush_number', $key );
+				$this->keys[ $flush_key ] = $flush_timestamp;
+			}
+		}
+	}
+
+	function flush( $key, $value ) {
+		if ( empty( $key ) || empty( $value ) ) {
+			return false;
+		}
+
+		$flush_cache_key = $this->get_flush_cache_key( $key, $value );
+		$flush_timestamp = time();
+		$retval = wp_cache_set( $flush_cache_key, $flush_timestamp, $this->flush_group );
+		return $retval;
+	}
 }
 
 global $batcache;
@@ -478,6 +525,9 @@ $batcache->keys = array(
 	'query' => $batcache->query,
 	'extra' => $batcache->unique
 );
+
+$batcache->add_flush_keys();
+
 if ( isset( $batcache->origin ) ) {
 	$batcache->keys['origin'] = $batcache->origin;
 }
