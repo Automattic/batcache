@@ -1,13 +1,13 @@
-=== Batcache ===
-Contributors: automattic, andy, orensol, markjaquith, vnsavage, batmoo, yoavf
-Tags: cache, memcache, memcached, speed, performance, load, server
-Requires at least: 3.2
-Tested up to: 5.3.2
-Stable tag: 1.5
+# Batcache
+- Contributors: automattic, andy, orensol, markjaquith, vnsavage, batmoo, yoavf
+- Tags: cache, memcache, memcached, speed, performance, load, server
+- Requires at least: 3.2
+- Tested up to: 5.3.2
+- Stable tag: 1.5
 
 Batcache uses Memcached to store and serve rendered pages.
 
-== Description ==
+## Description
 
 Batcache uses Memcached to store and serve rendered pages. It can also optionally cache redirects. It's not as fast as Donncha's WP-Super-Cache but it can be used where file-based caching is not practical or not desired. For instance, any site that is run on more than one server should use Batcache because it allows all servers to use the same storage.
 
@@ -17,69 +17,74 @@ Batcache is aimed at preventing a flood of traffic from breaking your site. It d
 
 Possible future features:
 
-* Comments, edits, and new posts will trigger cache regeneration
-* Online installation assistance
-* Configuration page
-* Stats
+- Comments, edits, and new posts will trigger cache regeneration
+- Online installation assistance
+- Configuration page
+- Stats
 
-== Installation ==
+## Installation
 
 1. Get the Memcached backend working. See below.
 
-1. Upload `advanced-cache.php` to the `/wp-content/` directory
+2. Upload `advanced-cache.php` to the `/wp-content/` directory
 
-1. Add this line the top of `wp-config.php` to activate Batcache:
+3. Add this line the top of `wp-config.php` to activate Batcache:
 
-`define('WP_CACHE', true);`
+   `define('WP_CACHE', true);`
 
-1. Test by reloading a page in your browser several times and then viewing the source. Just above the `</head>` closing tag you should see some Batcache stats.
+4. Test by reloading a page in your browser several times and then viewing the source. Just above the `</head>` closing tag you should see some Batcache stats.
 
-1. Tweak the options near the top of `advanced-cache.php`
+5. Tweak the options near the top of `advanced-cache.php`
 
-1. *Optional* Upload `batcache.php` to the `/wp-content/plugins/` directory.
+6. *Optional* Upload `batcache.php` to the `/wp-content/plugins/` directory.
 
-= Memcached backend =
+### Memcached backend
 
 1. Install [memcached](https://memcached.org/) on at least one server. Note the connection info. The default is `127.0.0.1:11211`.
 
-1. Install the [PECL memcached extension](http://pecl.php.net/package/memcache) and [Memcached Object Cache](https://wordpress.org/plugins/memcached/).
+2. Install the [PECL memcached extension](http://pecl.php.net/package/memcache) and [Memcached Object Cache](https://wordpress.org/plugins/memcached/).
 
-== Frequently Asked Questions ==
+## Frequently Asked Questions
 
-= Should I use this? =
+### Should I use this?
 
 Batcache can be used anywhere Memcached is available. WP-Super-Cache is preferred for most blogs. If you have more than one web server, try Batcache.
 
-= Why was this written? =
+### Why was this written?
 
 Batcache was written to help WordPress.com cope with the massive and prolonged traffic spike on Gizmodo's live blog during Apple events. Live blogs were famous for failing under the load of traffic. Gizmodo's live blog stays up because of Batcache.
 
 Actually all of WordPress.com stays up during Apple events because of Batcache. The traffic is twice the average during Apple events. But the web servers and databases barely feel the difference.
 
-= What does it have to do with bats? =
+### What does it have to do with bats?
 
 Batcache was named "supercache" when it was written. (It's still called that on WordPress.com.) A few months later, while "supercache" was still private, Donncha released the WP-Super-Cache plugin. It wouldn't be fun to dispute the name or create confusion for users so a name change seemed best. The move from "Super" to "Bat" was inspired by comic book heroes. It has nothing to do with the fact that the author's city is home to the [world's largest urban bat colony](http://www.batcon.org/our-work/regions/usa-canada/protect-mega-populations/cab-intro).
 
-== Changelog ==
+## Changelog
 
-= 1.5 =
+### 1.5
 
-* Add stats for cache hits
-* PHP 4 constructors are deprecated in PHP7
-* Removed "HTTP_RAW_POST_DATA" variable replaced with input stream check
-* Use Plugins API rather than the global variable
-* Set page gen time to request start if possible
-* Don't use get_post() when cleaning post cache, use already passed $post object
-* Only cache GET or HEAD
-* Add Opt-in CORS GET request cache.
-= 1.4 =
-* Misc updates
+- Add stats for cache hits
+- PHP 4 constructors are deprecated in PHP7
+- Removed "HTTP_RAW_POST_DATA" variable replaced with input stream check
+- Use Plugins API rather than the global variable
+- Set page gen time to request start if possible
+- Don't use get_post() when cleaning post cache, use already passed $post object
+- Only cache GET or HEAD
+- Add Opt-in CORS GET request cache.
 
-= 1.3 =
-* Code cleanup, multi-dc support improvements
+### 1.4
 
-= 1.2 =
-* Add REQUEST_METHOD to the cache keys. Prevents GET requests receiving bodyless HEAD responses. This change invalidates the entire cache at upgrade time.
+- Misc updates
 
-= 1.1 =
-* Many bugfixes and updates from trunk
+### 1.3
+
+- Code cleanup, multi-dc support improvements
+
+### 1.2
+
+- Add REQUEST_METHOD to the cache keys. Prevents GET requests receiving bodyless HEAD responses. This change invalidates the entire cache at upgrade time
+
+### 1.1
+
+- Many bugfixes and updates from trunk
