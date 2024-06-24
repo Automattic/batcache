@@ -69,6 +69,7 @@ class batcache {
 
 	var $cancel = false; // Change this to cancel the output buffer. Use batcache_cancel();
 
+	var $cookie         = '';
 	var $noskip_cookies = array( 'wordpress_test_cookie' ); // Names of cookies - if they exist and the cache would normally be bypassed, don't bypass it
 	var $cacheable_origin_hostnames = array(); // A whitelist of HTTP origin `<host>:<port>` (or just `<host>`) names that are allowed as cache variations.
 
@@ -77,6 +78,18 @@ class batcache {
 	var $ignored_query_args = array();
 	var $genlock = false;
 	var $do = false;
+
+	//Declare used variables for PHP 8.2+
+	var $cache       = array();
+	var $key         = '';
+	var $keys        = array();
+	var $permalink   = '';
+	var $pos         = 0;
+	var $req_key     = '';
+	var $requests    = 0;
+	var $status_code = null;
+	var $url_key     = '';
+	var $url_version = null;
 
 	function __construct( $settings ) {
 		if ( is_array( $settings ) ) foreach ( $settings as $k => $v )
