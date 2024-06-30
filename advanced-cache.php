@@ -420,7 +420,7 @@ if ( ! empty( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
 // Never batcache when cookies indicate a cache-exempt visitor.
 if ( is_array( $_COOKIE) && ! empty( $_COOKIE ) ) {
 	foreach ( array_keys( $_COOKIE ) as $batcache->cookie ) {
-		if ( ! in_array( $batcache->cookie, $batcache->noskip_cookies ) && ( substr( $batcache->cookie, 0, 2 ) == 'wp' || substr( $batcache->cookie, 0, 9 ) == 'wordpress' || substr( $batcache->cookie, 0, 14 ) == 'comment_author' ) ) {
+		if ( ! in_array( $batcache->cookie, $batcache->noskip_cookies ) && ( substr( $batcache->cookie, 0, 12 ) == 'woocommerce_' || substr( $batcache->cookie, 0, 10 ) == 'wordpress_' || substr( $batcache->cookie, 0, 15 ) == 'comment_author_' ) ) {
 			batcache_stats( 'batcache', 'cookie_skip' );
 			return;
 		}
