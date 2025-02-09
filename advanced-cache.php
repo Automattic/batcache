@@ -29,7 +29,7 @@ function batcache_cancel() {
 function vary_cache_on_function($function) {
 	global $batcache;
 
-	if ( preg_match('/include|require|echo|(?<!s)print|dump|export|open|sock|unlink|`|eval/i', $function) )
+	if ( preg_match('/include|require|echo|(?<!s)print|dump|export|open(?!ssl)|sock|unlink|`|eval/i', $function) )
 		die('Illegal word in variant determiner.');
 
 	if ( !preg_match('/\$_/', $function) )
