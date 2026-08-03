@@ -179,12 +179,16 @@ class batcache {
 	 * negotiating anything, just noticing that the body is not the html we keyed it as.
 	 */
 	function response_is_json() {
-		// Casing on the Content-Type header is inconsistent
-		foreach ( array( 'Content-Type', 'Content-type' ) as $key ) {
-			if ( ! isset( $this->cache['headers'][ $key ][0] ) )
+		if ( empty( $this->cache['headers'] ) )
+			return false;
+
+		// headers_list() hands the name back with whatever casing it was set with, so compare
+		// case-insensitively rather than guessing at the spellings.
+		foreach ( $this->cache['headers'] as $header => $values ) {
+			if ( 'content-type' !== strtolower( $header ) || ! isset( $values[0] ) )
 				continue;
 
-			$mime_type = strtolower( trim( $this->cache['headers'][ $key ][0] ) );
+			$mime_type = strtolower( trim( $values[0] ) );
 
 			if ( false !== $pos = strpos( $mime_type, ';' ) )
 				$mime_type = trim( substr( $mime_type, 0, $pos ) );
