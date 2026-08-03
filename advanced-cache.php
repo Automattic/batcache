@@ -327,6 +327,14 @@ class batcache {
 				unset( $this->cache['headers'][$header] );
 		}
 
+		// The key was decided on the serve path from the Accept header alone, so a plugin that
+		// negotiates on something else can still hand back JSON under a key that says html. Send it,
+		// but do not store it. A miss is cheap, replaying a JSON body to the next browser is not.
+		if ( ! isset( $this->keys['json'] ) && $this->response_is_json() ) {
+			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+			return $output;
+		}
+
 		foreach ( $this->cache['headers'] as $header => $values ) {
 			// Do not cache if cookies were set
 			if ( strtolower( $header ) === 'set-cookie' ) {
