@@ -108,27 +108,92 @@ class batcache {
 		return false;
 	}
 
-	function client_accepts_only_json() {
+	/**
+	 * Whether the client's most-preferred acceptable media type is ActivityPub.
+	 *
+	 * This mirrors Activitypub\accept_prefers_activitypub() in the ActivityPub plugin. Both must
+	 * classify a header the same way, or the representation the plugin serves and the one we key on
+	 * can disagree and a JSON body gets replayed to a browser.
+	 *
+	 * The media types are ranked by quality (`;q=`), highest first, ties broken by the order they
+	 * appear. The winner counts as ActivityPub when it is `application/activity+json`, or
+	 * `application/ld+json` carrying the ActivityStreams 2.0 profile. Plain `application/json` and
+	 * bare `application/ld+json` are not. Mastodon sends ActivityPub at q=1 with `text/html;q=0.1`
+	 * as a fallback and must get JSON; a browser lists `text/html` at q=1 and gets html.
+	 *
+	 * A media type with no `q` defaults to 1.0. A `q=0` refuses the type and is ignored.
+	 */
+	function client_prefers_activitypub() {
 		if ( ! isset( $_SERVER['HTTP_ACCEPT'] ) )
 			return false;
 
-		$is_json_only = false;
+		$winner_quality = 0.0;
+		$winner_is_ap   = false;
 
-		foreach ( explode( ',', $_SERVER['HTTP_ACCEPT'] ) as $mime_type ) {
-			if ( false !== $pos = strpos( $mime_type, ';' ) )
-				$mime_type = substr( $mime_type, 0, $pos );
+		foreach ( explode( ',', $_SERVER['HTTP_ACCEPT'] ) as $part ) {
+			$segments  = explode( ';', $part );
+			$mime_type = strtolower( trim( array_shift( $segments ) ) );
 
-			$mime_type = trim( $mime_type );
-
-			if ( '/json' === substr( $mime_type, -5 ) || '+json' === substr( $mime_type, -5 ) ) {
-				$is_json_only = true;
+			if ( '' === $mime_type )
 				continue;
+
+			// Read the quality and profile parameters, which may come in any order.
+			$quality = 1.0;
+			$profile = '';
+
+			foreach ( $segments as $param ) {
+				$param = trim( $param );
+
+				if ( 0 === stripos( $param, 'q=' ) ) {
+					// Only a valid number sets the quality, a malformed `q=` keeps the 1.0 default.
+					$q_value = trim( substr( $param, 2 ) );
+					if ( is_numeric( $q_value ) )
+						$quality = (float) $q_value;
+				} elseif ( 0 === stripos( $param, 'profile=' ) ) {
+					$profile = strtolower( trim( substr( $param, 8 ), '"' ) );
+				}
 			}
 
-			return false;
+			// A `q=0` means the client refuses this type, so ignore it entirely.
+			if ( $quality <= 0 )
+				continue;
+
+			// Highest quality wins, on a tie the earlier type in the header keeps the lead.
+			if ( $quality > $winner_quality ) {
+				$winner_quality = $quality;
+
+				// The profile is matched without the scheme so both the http and https URIs work.
+				$winner_is_ap = 'application/activity+json' === $mime_type
+					|| ( 'application/ld+json' === $mime_type && false !== strpos( $profile, '://www.w3.org/ns/activitystreams' ) );
+			}
 		}
 
-		return $is_json_only;
+		return $winner_is_ap;
+	}
+
+	/**
+	 * Whether the response we are about to store has a JSON Content-Type.
+	 *
+	 * A response with no Content-Type at all stays cacheable, only an explicit JSON type counts.
+	 * Unlike client_prefers_activitypub() this matches any JSON type, because here we are not
+	 * negotiating anything, just noticing that the body is not the html we keyed it as.
+	 */
+	function response_is_json() {
+		// Casing on the Content-Type header is inconsistent
+		foreach ( array( 'Content-Type', 'Content-type' ) as $key ) {
+			if ( ! isset( $this->cache['headers'][ $key ][0] ) )
+				continue;
+
+			$mime_type = strtolower( trim( $this->cache['headers'][ $key ][0] ) );
+
+			if ( false !== $pos = strpos( $mime_type, ';' ) )
+				$mime_type = trim( substr( $mime_type, 0, $pos ) );
+
+			if ( '/json' === substr( $mime_type, -5 ) || '+json' === substr( $mime_type, -5 ) )
+				return true;
+		}
+
+		return false;
 	}
 
 	function is_cacheable_origin( $origin ) {
@@ -499,7 +564,7 @@ if ( $batcache->is_ssl() )
 	$batcache->keys['ssl'] = true;
 
 # Some plugins return html or json based on the Accept value for the same URL.
-if ( $batcache->client_accepts_only_json() )
+if ( $batcache->client_prefers_activitypub() )
 	$batcache->keys['json'] = true;
 
 // Recreate the permalink from the URL
