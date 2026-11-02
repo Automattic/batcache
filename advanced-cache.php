@@ -131,6 +131,69 @@ class batcache {
 		return $is_json_only;
 	}
 
+	/**
+	 * Whether the client's most-preferred acceptable media type is ActivityPub.
+	 *
+	 * This mirrors Activitypub\accept_prefers_activitypub() in the ActivityPub plugin. Both must
+	 * classify a header the same way, or the representation the plugin serves and the one we key on
+	 * can disagree and a JSON body gets replayed to a browser.
+	 *
+	 * The media types are ranked by quality (`;q=`), highest first, ties broken by the order they
+	 * appear. The winner counts as ActivityPub when it is `application/activity+json`, or
+	 * `application/ld+json` carrying the ActivityStreams 2.0 profile. Plain `application/json` and
+	 * bare `application/ld+json` are not. Mastodon sends ActivityPub at q=1 with `text/html;q=0.1`
+	 * as a fallback and must get JSON; a browser lists `text/html` at q=1 and gets html.
+	 *
+	 * A media type with no `q` defaults to 1.0. A `q=0` refuses the type and is ignored.
+	 */
+	function client_prefers_activitypub() {
+		if ( ! isset( $_SERVER['HTTP_ACCEPT'] ) )
+			return false;
+
+		$winner_quality = 0.0;
+		$winner_is_ap   = false;
+
+		foreach ( explode( ',', $_SERVER['HTTP_ACCEPT'] ) as $part ) {
+			$segments  = explode( ';', $part );
+			$mime_type = strtolower( trim( array_shift( $segments ) ) );
+
+			if ( '' === $mime_type )
+				continue;
+
+			// Read the quality and profile parameters, which may come in any order.
+			$quality = 1.0;
+			$profile = '';
+
+			foreach ( $segments as $param ) {
+				$param = trim( $param );
+
+				if ( 0 === stripos( $param, 'q=' ) ) {
+					// Only a valid number sets the quality, a malformed `q=` keeps the 1.0 default.
+					$q_value = trim( substr( $param, 2 ) );
+					if ( is_numeric( $q_value ) )
+						$quality = (float) $q_value;
+				} elseif ( 0 === stripos( $param, 'profile=' ) ) {
+					$profile = strtolower( trim( substr( $param, 8 ), '"' ) );
+				}
+			}
+
+			// A `q=0` means the client refuses this type, so ignore it entirely.
+			if ( $quality <= 0 )
+				continue;
+
+			// Highest quality wins, on a tie the earlier type in the header keeps the lead.
+			if ( $quality > $winner_quality ) {
+				$winner_quality = $quality;
+
+				// The profile is matched without the scheme so both the http and https URIs work.
+				$winner_is_ap = 'application/activity+json' === $mime_type
+					|| ( 'application/ld+json' === $mime_type && false !== strpos( $profile, '://www.w3.org/ns/activitystreams' ) );
+			}
+		}
+
+		return $winner_is_ap;
+	}
+
 	function is_cacheable_origin( $origin ) {
 		$parsed_origin = parse_url( $origin );
 
@@ -499,7 +562,7 @@ if ( $batcache->is_ssl() )
 	$batcache->keys['ssl'] = true;
 
 # Some plugins return html or json based on the Accept value for the same URL.
-if ( $batcache->client_accepts_only_json() )
+if ( $batcache->client_accepts_only_json() || $batcache->client_prefers_activitypub() )
 	$batcache->keys['json'] = true;
 
 // Recreate the permalink from the URL
