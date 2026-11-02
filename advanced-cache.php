@@ -321,8 +321,14 @@ class batcache {
 		}
 
 		if ( !empty( $this->cache['headers'] ) && !empty( $this->uncached_headers ) ) {
-			foreach ( $this->uncached_headers as $header )
-				unset( $this->cache['headers'][$header] );
+			foreach ( $this->uncached_headers as $h ) {
+				foreach ( array_keys( $this->cache['headers'] ) as $k ) {
+					if ( strcasecmp( $k, $h ) === 0 ) {
+						unset( $this->cache['headers'][ $k ] );
+						break;
+					}
+				}
+			}
 		}
 
 		foreach ( $this->cache['headers'] as $header => $values ) {
@@ -654,7 +660,7 @@ if (
 
 	// Respect ETags served with feeds.
 	$three04 = false;
-	if ( isset( $SERVER['HTTP_IF_NONE_MATCH'] ) && isset( $batcache->cache['headers']['ETag'][0] ) && $_SERVER['HTTP_IF_NONE_MATCH'] == $batcache->cache['headers']['ETag'][0] )
+	if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && isset( $batcache->cache['headers']['ETag'][0] ) && $_SERVER['HTTP_IF_NONE_MATCH'] === $batcache->cache['headers']['ETag'][0] )
 		$three04 = true;
 
 	// Respect If-Modified-Since.
