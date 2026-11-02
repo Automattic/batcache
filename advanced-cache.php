@@ -108,6 +108,29 @@ class batcache {
 		return false;
 	}
 
+	function client_accepts_only_json() {
+		if ( ! isset( $_SERVER['HTTP_ACCEPT'] ) )
+			return false;
+
+		$is_json_only = false;
+
+		foreach ( explode( ',', $_SERVER['HTTP_ACCEPT'] ) as $mime_type ) {
+			if ( false !== $pos = strpos( $mime_type, ';' ) )
+				$mime_type = substr( $mime_type, 0, $pos );
+
+			$mime_type = trim( $mime_type );
+
+			if ( '/json' === substr( $mime_type, -5 ) || '+json' === substr( $mime_type, -5 ) ) {
+				$is_json_only = true;
+				continue;
+			}
+
+			return false;
+		}
+
+		return $is_json_only;
+	}
+
 	/**
 	 * Whether the client's most-preferred acceptable media type is ActivityPub.
 	 *
@@ -169,35 +192,6 @@ class batcache {
 		}
 
 		return $winner_is_ap;
-	}
-
-	/**
-	 * Whether the response we are about to store has a JSON Content-Type.
-	 *
-	 * A response with no Content-Type at all stays cacheable, only an explicit JSON type counts.
-	 * Unlike client_prefers_activitypub() this matches any JSON type, because here we are not
-	 * negotiating anything, just noticing that the body is not the html we keyed it as.
-	 */
-	function response_is_json() {
-		if ( empty( $this->cache['headers'] ) )
-			return false;
-
-		// headers_list() hands the name back with whatever casing it was set with, so compare
-		// case-insensitively rather than guessing at the spellings.
-		foreach ( $this->cache['headers'] as $header => $values ) {
-			if ( 'content-type' !== strtolower( $header ) || ! isset( $values[0] ) )
-				continue;
-
-			$mime_type = strtolower( trim( $values[0] ) );
-
-			if ( false !== $pos = strpos( $mime_type, ';' ) )
-				$mime_type = trim( substr( $mime_type, 0, $pos ) );
-
-			if ( '/json' === substr( $mime_type, -5 ) || '+json' === substr( $mime_type, -5 ) )
-				return true;
-		}
-
-		return false;
 	}
 
 	function is_cacheable_origin( $origin ) {
@@ -329,14 +323,6 @@ class batcache {
 		if ( !empty( $this->cache['headers'] ) && !empty( $this->uncached_headers ) ) {
 			foreach ( $this->uncached_headers as $header )
 				unset( $this->cache['headers'][$header] );
-		}
-
-		// The key was decided on the serve path from the Accept header alone, so a plugin that
-		// negotiates on something else can still hand back JSON under a key that says html. Send it,
-		// but do not store it. A miss is cheap, replaying a JSON body to the next browser is not.
-		if ( ! isset( $this->keys['json'] ) && $this->response_is_json() ) {
-			wp_cache_delete( "{$this->url_key}_genlock", $this->group );
-			return $output;
 		}
 
 		foreach ( $this->cache['headers'] as $header => $values ) {
@@ -576,7 +562,7 @@ if ( $batcache->is_ssl() )
 	$batcache->keys['ssl'] = true;
 
 # Some plugins return html or json based on the Accept value for the same URL.
-if ( $batcache->client_prefers_activitypub() )
+if ( $batcache->client_accepts_only_json() || $batcache->client_prefers_activitypub() )
 	$batcache->keys['json'] = true;
 
 // Recreate the permalink from the URL
