@@ -10,6 +10,6 @@
 			"source": "https://github.com/Automattic/batcache"
 	},
     "require"    : {
-        "composer/installers": "~1.0"
+        "composer/installers": "^1 || ^2"
     }
 }
