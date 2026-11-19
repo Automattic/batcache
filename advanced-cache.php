@@ -38,6 +38,23 @@ function vary_cache_on_function($function) {
 	$batcache->add_variant($function);
 }
 
+/**
+ * This allows nginx headers to be cached.
+ */
+if ( ! function_exists( 'apache_response_headers' ) ) {
+	function apache_response_headers() {
+		$arh     = array();
+		$headers = headers_list();
+		foreach ( $headers as $header ) {
+			$header                        = explode( ":", $header );
+			$arh[ array_shift( $header ) ] = trim( implode( ":", $header ) );
+		}
+
+		return $arh;
+	}
+}
+
+
 class batcache {
 	// This is the base configuration. You can edit these variables or move them into your wp-config.php file.
 	var $max_age =  300; // Expire batcache items aged this many seconds (zero to disable batcache)
