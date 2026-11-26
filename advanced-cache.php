@@ -344,6 +344,17 @@ class batcache {
 				return $output;
 			}
 
+			// A shared cache must not store a response marked private or no-store (RFC 9111). This
+			// covers redirects too, such as a content-negotiation redirect sent only to some clients.
+			if ( strtolower( $header ) === 'cache-control' ) {
+				foreach ( (array) $values as $value ) {
+					if ( preg_match( '/(^|[\s,])(private|no-store)([\s,=]|$)/i', $value ) ) {
+						wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+						return $output;
+					}
+				}
+			}
+
 			foreach ( (array) $values as $value )
 				if ( preg_match('/^Cache-Control:.*max-?age=(\d+)/i', "$header: $value", $matches) )
 					$this->max_age = intval($matches[1]);
