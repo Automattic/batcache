@@ -194,6 +194,19 @@ class batcache {
 		return $winner_is_ap;
 	}
 
+	/**
+	 * Whether the client's Accept header mentions Markdown at all, in any spelling or quality.
+	 *
+	 * Plugins that serve Markdown, or redirect to a Markdown copy, from a post's own URL decide in
+	 * different ways: some look for `text/markdown` or just `markdown` anywhere in the header, some
+	 * also take `text/x-markdown`, others rank by quality. Any mention gets its own bucket, so
+	 * whichever rule a plugin uses, its Markdown answer can't land in the bucket browsers read from.
+	 * Browsers never send Markdown types.
+	 */
+	function client_accepts_markdown() {
+		return isset( $_SERVER['HTTP_ACCEPT'] ) && false !== stripos( $_SERVER['HTTP_ACCEPT'], 'markdown' );
+	}
+
 	// Whether the request carries HTTP credentials. The cache key has no user in it.
 	function has_http_auth() {
 		// Servers expose the Authorization header under different names.
@@ -342,6 +355,17 @@ class batcache {
 			if ( strtolower( $header ) === 'set-cookie' ) {
 				wp_cache_delete( "{$this->url_key}_genlock", $this->group );
 				return $output;
+			}
+
+			// A shared cache must not store a response marked private or no-store (RFC 9111). This
+			// covers redirects too, such as a content-negotiation redirect sent only to some clients.
+			if ( strtolower( $header ) === 'cache-control' ) {
+				foreach ( (array) $values as $value ) {
+					if ( preg_match( '/(^|[\s,])(private|no-store)([\s,=]|$)/i', $value ) ) {
+						wp_cache_delete( "{$this->url_key}_genlock", $this->group );
+						return $output;
+					}
+				}
 			}
 
 			foreach ( (array) $values as $value )
@@ -582,6 +606,9 @@ if ( $batcache->is_ssl() )
 # Some plugins return html or json based on the Accept value for the same URL.
 if ( $batcache->client_accepts_only_json() || $batcache->client_prefers_activitypub() )
 	$batcache->keys['json'] = true;
+
+if ( $batcache->client_accepts_markdown() )
+	$batcache->keys['markdown'] = true;
 
 // Recreate the permalink from the URL
 $batcache->permalink = 'http://' . $batcache->keys['host'] . $batcache->keys['path'] . ( isset($batcache->keys['query']['p']) ? "?p=" . $batcache->keys['query']['p'] : '' );
